@@ -1,5 +1,9 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
+import 'package:medic_dental_desktop/quiestion.dart';
 import 'package:medic_dental_desktop/screens/appoinments/views/CalendarAppointmentsScreen.dart';
+import 'package:medic_dental_desktop/screens/cuentas/views/CuentasDashboard.dart';
 import 'package:medic_dental_desktop/screens/odontograms/views/OdontogramScreen.dart';
 import 'package:medic_dental_desktop/screens/odontograms/views/PatientListScreen.dart';
 import 'package:medic_dental_desktop/screens/patients/views/PatientsScreen.dart';
@@ -153,10 +157,10 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
         page = PatientListScreen();
         break;
       case 3:
-        page = Center(child: Text('Página de Inventario'));
+       // page = QuestionScreen();
         break;
       case 4:
-        page = Center(child: Text('Página de Cuentas'));
+        page = CuentasScreen();
         break;
       case 5:
         page = Center(child: Text('Página de Configuración'));

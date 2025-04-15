@@ -83,78 +83,83 @@ class DatabaseHelper {
     ''');
     
     // Create Treatments table
-    await db.execute('''
-      CREATE TABLE treatments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patient_id INTEGER,
-        treatment_date TEXT NOT NULL,
-        diagnosis TEXT,
-        treatment TEXT,
-        cost REAL,
-        paid REAL,
-        notes TEXT,
-        FOREIGN KEY (patient_id) REFERENCES patients (id) ON DELETE CASCADE
-      )
-    ''');
+  await db.execute('''
+  CREATE TABLE IF NOT EXISTS IngresosEgresos (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Fecha TEXT NOT NULL,
+    Concepto TEXT NOT NULL,
+    Ingresos REAL DEFAULT 0,
+    Egresos REAL DEFAULT 0,
+    Saldo REAL
+  )
+''');
+
     
     // Create Inventory table
-    await db.execute('''
-      CREATE TABLE inventory (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        category TEXT,
-        quantity INTEGER NOT NULL,
-        unit TEXT,
-        cost REAL,
-        supplier TEXT,
-        reorder_level INTEGER,
-        expiration_date TEXT
-      )
-    ''');
+   await db.execute('''
+      CREATE TABLE tratamientos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    descripcion TEXT,
+    precio DECIMAL(10,2),
+    duracion_minutos INT
+)
+'''  );
+ await db.execute('''
+  CREATE TABLE IF NOT EXISTS Productos (
+    Codigo TEXT PRIMARY KEY,
+    Articulo TEXT NOT NULL,
+    Entradas INTEGER DEFAULT 0,
+    Salidas INTEGER DEFAULT 0,
+    Stock INTEGER DEFAULT 0
+  )
+''');
 
-    await db.execute('''
-      CREATE TABLE inventory_movements (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        inventory_id INTEGER NOT NULL,
-        type TEXT NOT NULL,
-        quantity INTEGER NOT NULL,
-        reason TEXT,
-        date TEXT NOT NULL,
-        FOREIGN KEY (inventory_id) REFERENCES inventory (id) ON DELETE CASCADE
-      )
-    ''');
 
-    await db.execute('''
-      CREATE TABLE inventory_categories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE
-      )
-    ''');
+await db.execute('''
+  CREATE TABLE IF NOT EXISTS Entradas (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Codigo TEXT NOT NULL,
+    Articulo TEXT NOT NULL,
+    Fecha TEXT NOT NULL,
+    Cantidad INTEGER NOT NULL,
+    FOREIGN KEY (Codigo) REFERENCES Productos (Codigo)
+  )
+''');
 
-    await db.execute('''
-      CREATE TABLE suppliers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        contact TEXT,
-        email TEXT,
-        phone TEXT
-      )
-    ''');
-    
-    // Create Payments table
-    await db.execute('''
-      CREATE TABLE payments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        patient_id INTEGER,
-        treatment_id INTEGER,
-        amount REAL NOT NULL,
-        payment_date TEXT NOT NULL,
-        payment_method TEXT,
-        notes TEXT,
-        FOREIGN KEY (patient_id) REFERENCES patients (id) ON DELETE CASCADE,
-        FOREIGN KEY (treatment_id) REFERENCES treatments (id) ON DELETE CASCADE
-      )
-    ''');
+await db.execute('''
+  CREATE TABLE IF NOT EXISTS Salidas (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Codigo TEXT NOT NULL,
+    Articulo TEXT NOT NULL,
+    Fecha TEXT NOT NULL,
+    Cantidad INTEGER NOT NULL,
+    FOREIGN KEY (Codigo) REFERENCES Productos (Codigo)
+  )
+''');
+await db.execute('''
+  CREATE TABLE IF NOT EXISTS CuentasPorCobrar (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Paciente TEXT NOT NULL,
+    Articulo TEXT NOT NULL,
+    ValorCredito REAL NOT NULL,
+    FechaInicial TEXT NOT NULL,
+    SaldoCuenta REAL NOT NULL,
+    FechaFinal TEXT,
+    Estado TEXT
+  )
+''');
+await db.execute('''
+  CREATE TABLE IF NOT EXISTS RecaudosDiarios (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    RecaudoDiario REAL NOT NULL,
+    FechaCobro TEXT NOT NULL,
+    NombreCliente TEXT NOT NULL,
+    Concepto TEXT NOT NULL
+  )
+''');
+
+
     
     
   }
@@ -253,39 +258,7 @@ class DatabaseHelper {
     );
   }
 
-  // INVENTORY CRUD OPERATIONS
-  
-  Future<int> insertInventoryItem(Map<String, dynamic> item) async {
-    Database db = await database;
-    return await db.insert('inventory', item);
-  }
-
-  Future<List<Map<String, dynamic>>> getAllInventory() async {
-    Database db = await database;
-    return await db.query('inventory', orderBy: 'name');
-  }
-
-  
-
-  Future<int> updateInventoryItem(int id, Map<String, dynamic> item) async {
-    Database db = await database;
-    return await db.update(
-      'inventory',
-      item,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  Future<int> deleteInventoryItem(int id) async {
-    Database db = await database;
-    return await db.delete(
-      'inventory',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
+ 
   // ODONTOGRAMA CRUD OPERATIONS
   
   Future<int> insertOdontograma(Map<String, dynamic> odontograma) async {
@@ -352,42 +325,6 @@ class DatabaseHelper {
     ''');
   }
   
-  // Get total amount paid by a patient
-  Future<double> getTotalPaidByPatient(int patientId) async {
-    Database db = await database;
-    var result = await db.rawQuery('''
-      SELECT SUM(amount) as total_paid
-      FROM payments
-      WHERE patient_id = ?
-    ''', [patientId]);
-    
-    return result.first['total_paid'] == null ? 0.0 : result.first['total_paid'] as double;
-  }
-  
-  // Get patient balance (total treatment costs - payments)
-  Future<double> getPatientBalance(int patientId) async {
-    Database db = await database;
-    
-    var treatmentResult = await db.rawQuery('''
-      SELECT SUM(cost) as total_cost
-      FROM treatments
-      WHERE patient_id = ?
-    ''', [patientId]);
-    
-    var paymentResult = await db.rawQuery('''
-      SELECT SUM(amount) as total_paid
-      FROM payments
-      WHERE patient_id = ?
-    ''', [patientId]);
-    
-    double totalCost = treatmentResult.first['total_cost'] == null ? 
-                        0.0 : treatmentResult.first['total_cost'] as double;
-    double totalPaid = paymentResult.first['total_paid'] == null ? 
-                       0.0 : paymentResult.first['total_paid'] as double;
-    
-    return totalCost - totalPaid;
-  }
-  
   // Get the latest odontograma for a patient
   Future<Map<String, dynamic>?> getLatestPatientOdontograma(String clienteId) async {
     Database db = await database;
@@ -401,113 +338,92 @@ class DatabaseHelper {
     
     return result.isNotEmpty ? result.first : null;
   }
-//INVENTORY 
-// Create
-   Future<int> createInventoryItem(Map<String, dynamic> itemData) async {
-    Database db = await database;
-    return await db.insert('inventory', itemData);
-  }
 
-  // Read (single item)
-  
-  Future<Map<String, dynamic>?> getInventoryItem(int id) async {
-    final db = await database;
-    final result = await db.query(
-      'inventory',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    return result.isNotEmpty ? result.first : null;
-  }
+  // INGRESOS EGRESOS
+  Future<int> insertMovimiento(Map<String, dynamic> data) async {
+  final db = await database;
+  return await db.insert('IngresosEgresos', data);
+}
+Future<List<Map<String, dynamic>>> getMovimientos() async {
+  final db = await database;
+  return await db.query('IngresosEgresos', orderBy: 'Fecha DESC');
+}
+Future<int> updateMovimiento(int id, Map<String, dynamic> data) async {
+  final db = await database;
+  return await db.update(
+    'IngresosEgresos',
+    data,
+    where: 'Id = ?',
+    whereArgs: [id],
+  );
+}
+Future<int> deleteMovimiento(int id) async {
+  final db = await database;
+  return await db.delete('IngresosEgresos', where: 'Id = ?', whereArgs: [id]);
+}
+// CUENTAS POR COBRAR
 
-  // Read (all items)
-  Future<List<Map<String, dynamic>>> getAllInventoryItems() async {
-   Database db = await database;
-    return await db.query('inventory');
-  }
+Future<int> insertCuentaPorCobrar(Map<String, dynamic> data) async {
+  final db = await database;
+  return await db.insert('CuentasPorCobrar', data);
+}
 
-  // Read (items with low stock)
- 
-  // Update quantity (with movement record)
-   Future<void> updateInventoryQuantity(
-    int itemId, 
-    int quantityChange, 
-    String movementType, 
-    String? reason,
-  ) async {
-    Database db = await database;
-    
-    await db.transaction((txn) async {
-      // Update inventory quantity
-      await txn.rawUpdate('''
-        UPDATE inventory 
-        SET quantity = quantity + ? 
-        WHERE id = ?
-      ''', [quantityChange, itemId]);
+Future<List<Map<String, dynamic>>> getCuentasPorCobrar() async {
+  final db = await database;
+  return await db.query('CuentasPorCobrar', orderBy: 'FechaInicial DESC');
+}
 
-      // Record movement
-      await txn.insert('inventory_movements', {
-        'inventory_id': itemId,
-        'type': movementType,
-        'quantity': quantityChange.abs(),
-        'reason': reason,
-        'date': DateTime.now().toIso8601String(),
-      });
-    });
-  }
+Future<int> updateCuentaPorCobrar(int id, Map<String, dynamic> data) async {
+  final db = await database;
+  return await db.update(
+    'CuentasPorCobrar',
+    data,
+    where: 'Id = ?',
+    whereArgs: [id],
+  );
+}
+
+Future<int> deleteCuentaPorCobrar(int id) async {
+  final db = await database;
+  return await db.delete(
+    'CuentasPorCobrar',
+    where: 'Id = ?',
+    whereArgs: [id],
+  );
+}
+//RECUADOS DIARIOS
+// Insertar un nuevo recaudo diario
+Future<int> insertRecaudoDiario(Map<String, dynamic> data) async {
+  final db = await database;
+  return await db.insert('RecaudosDiarios', data);
+}
+
+// Obtener todos los recaudos diarios
+Future<List<Map<String, dynamic>>> getRecaudosDiarios() async {
+  final db = await database;
+  return await db.query('RecaudosDiarios', orderBy: 'FechaCobro DESC');
+}
+
+// Actualizar un recaudo diario por ID
+Future<int> updateRecaudoDiario(int id, Map<String, dynamic> data) async {
+  final db = await database;
+  return await db.update(
+    'RecaudosDiarios',
+    data,
+    where: 'Id = ?',
+    whereArgs: [id],
+  );
+}
+
+// Eliminar un recaudo diario por ID
+Future<int> deleteRecaudoDiario(int id) async {
+  final db = await database;
+  return await db.delete(
+    'RecaudosDiarios',
+    where: 'Id = ?',
+    whereArgs: [id],
+  );
+}
 
 
-  // INVENTORY MOVEMENTS
-  Future<int> insertInventoryMovement(Map<String, dynamic> movement) async {
-    Database db = await database;
-    return await db.insert('inventory_movements', movement);
-  }
-
-  Future<List<Map<String, dynamic>>> getInventoryMovements(int inventoryId) async {
-    Database db = await database;
-    return await db.query(
-      'inventory_movements',
-      where: 'inventory_id = ?',
-      whereArgs: [inventoryId],
-      orderBy: 'date DESC',
-    );
-  }
-
-  Future<void> registerInventoryMovement({
-    required int inventoryId,
-    required String type,
-    required int quantity,
-    required String reason,
-  }) async {
-    Database db = await database;
-
-    await db.transaction((txn) async {
-      var item = await txn.query(
-        'inventory',
-        where: 'id = ?',
-        whereArgs: [inventoryId],
-        limit: 1,
-      );
-
-      if (item.isEmpty) return;
-
-      int currentQty = item.first['quantity'] as int;
-      int newQty = type == 'entrada' ? currentQty + quantity : currentQty - quantity;
-
-      await txn.update(
-        'inventory',
-        {'quantity': newQty},
-        where: 'id = ?',
-        whereArgs: [inventoryId],
-      );
-
-      await txn.insert('inventory_movements', {
-        'inventory_id': inventoryId,
-        'type': type,
-        'quantity': quantity,
-        'reason': reason,
-        'date': DateTime.now().toIso8601String(),
-      });
-    });
-  }
 }
