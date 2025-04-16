@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:medic_dental_desktop/quiestion.dart';
 import 'package:medic_dental_desktop/screens/appoinments/views/CalendarAppointmentsScreen.dart';
 import 'package:medic_dental_desktop/screens/cuentas/views/CuentasDashboard.dart';
+import 'package:medic_dental_desktop/screens/info/views/InformationScreen.dart';
 import 'package:medic_dental_desktop/screens/odontograms/views/OdontogramScreen.dart';
 import 'package:medic_dental_desktop/screens/odontograms/views/PatientListScreen.dart';
 import 'package:medic_dental_desktop/screens/patients/views/PatientsScreen.dart';
 import 'package:medic_dental_desktop/screens/products/views/InventoryScreen.dart';
+import 'package:medic_dental_desktop/screens/settings/view/SettingScreen.dart';
 
 class ExpandableSidebar extends StatefulWidget {
   final Function(Widget) onItemSelected;
@@ -30,6 +32,7 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
     'Inventario': Color(0xFF1976D2),
     'Cuentas': Color(0xFF039BE5),
     'Configuración': Color(0xFF7CB342),
+    'Información': Color(0xFF8E24AA),
   };
 
   @override
@@ -64,6 +67,7 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
                   _buildSidebarItem(Icons.inventory, 'Inventario', 3),
                   _buildSidebarItem(Icons.account_balance_wallet, 'Cuentas', 4),
                   _buildSidebarItem(Icons.settings, 'Configuración', 5),
+                  _buildSidebarItem(Icons.info, 'Información', 6),
                 ],
               ),
             ),
@@ -164,7 +168,10 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
         page = CuentasScreen();
         break;
       case 5:
-        page = Center(child: Text('Página de Configuración'));
+        page = ConfiguracionScreen();
+        break;
+      case 6:
+        page = InformacionClinicaScreen();
         break;
     }
 

@@ -155,7 +155,18 @@ await db.execute('''
   )
 ''');
 
-    
+await db.execute('''CREATE TABLE configuracion (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ruc TEXT NOT NULL,
+  nombre_empresa TEXT NOT NULL,
+  direccion TEXT,
+  telefono TEXT,
+  logo TEXT,  
+  email TEXT,
+  website TEXT,
+  fecha_creacion TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+''');
     
   }
 
@@ -201,6 +212,11 @@ await db.execute('''
       whereArgs: [id],
     );
   }
+  Future<int> getTotalPacientes() async {
+  final db = await database;
+  final result = await db.rawQuery('SELECT COUNT(*) as total FROM patients');
+  return Sqflite.firstIntValue(result) ?? 0;
+}
 
   // APPOINTMENT CRUD OPERATIONS
   
@@ -492,6 +508,41 @@ Future<List<Map<String, dynamic>>> getSalidasByProducto(int productoId) async {
   return await db.query('salidas', where: 'producto_id = ?', whereArgs: [productoId]);
 }
 
+//CRUR CONFIGURACION
+ Future<void> insertConfiguracion(Map<String, dynamic> data) async {
+    final db = await database;
+    await db.insert(
+      'configuracion',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace, // Para reemplazar en caso de duplicados
+    );
+  }
 
+  Future<Map<String, dynamic>> getConfiguracion() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('configuracion');
+    if (maps.isNotEmpty) {
+      return maps.first;
+    } else {
+      return {}; // Retorna un mapa vacío si no hay configuración
+    }
+  }
+Future<int> updateConfiguracion(int id, Map<String, dynamic> data) async {
+  final db = await database;
+  return await db.update(
+    'configuracion',
+    data,
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+}
+Future<int> deleteConfiguracion(int id) async {
+  final db = await database;
+  return await db.delete(
+    'configuracion',
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+}
 
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medic_dental_desktop/screens/dashboard/widgets/navbar/DrawerItemTile.widget.dart';
+import 'package:medic_dental_desktop/screens/info/views/InformationScreen.dart';
 
 class DentalDashboard extends StatefulWidget {
   @override
@@ -7,7 +8,8 @@ class DentalDashboard extends StatefulWidget {
 }
 
 class _DentalDashboardState extends State<DentalDashboard> {
-  Widget _currentPage = Center(child: Text("Citas")); // Default page
+  Widget _currentPage = InformacionClinicaScreen(); // Página de información predeterminada
+
 
   final List<Widget> _pages = [
     Center(child: Text("Citas")),
