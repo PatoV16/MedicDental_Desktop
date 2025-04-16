@@ -22,6 +22,12 @@ class _PatientsScreenState extends State<PatientsScreen> {
       _patients = patients;
     });
   }
+void _openPatientForm(BuildContext context, {Map<String, dynamic>? patient}) {
+  showDialog(
+    context: context,
+    builder: (context) => PatientFormScreen(patient: patient),
+  );
+}
 
   void _navigateToForm([Map<String, dynamic>? patient]) async {
     await Navigator.push(
@@ -59,7 +65,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () => _navigateToForm(),
+        onPressed: ()  => _openPatientForm(context),
       ),
     );
   }

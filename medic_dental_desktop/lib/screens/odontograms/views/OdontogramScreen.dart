@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:medic_dental_desktop/database/helper.database.dart';
 
@@ -400,77 +401,87 @@ class _OdontogramaScreenState extends State<OdontogramaScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Especificaciones:',
-                              style: TextStyle(
-                                fontSize: 16, 
-                                fontWeight: FontWeight.bold,
-                                color: Colors.teal[800],
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            TextField(
-                              controller: _especificacionesController,
-                              maxLines: 3,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: Colors.teal.shade200,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: Colors.teal,
-                                    width: 2,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: _isEditing ? Colors.white : Colors.grey.shade100,
-                                enabled: _isEditing,
-                                hintText: 'Ingrese las especificaciones...',
-                              ),
-                            ),
-                            
-                            SizedBox(height: 20),
-                            
-                            Text(
-                              'Observaciones:',
-                              style: TextStyle(
-                                fontSize: 16, 
-                                fontWeight: FontWeight.bold,
-                                color: Colors.teal[800],
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            TextField(
-                              controller: _observacionesController,
-                              maxLines: 5,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: Colors.teal.shade200,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                    color: Colors.teal,
-                                    width: 2,
-                                  ),
-                                ),
-                                filled: true,
-                                fillColor: _isEditing ? Colors.white : Colors.grey.shade100,
-                                enabled: _isEditing,
-                                hintText: 'Ingrese las observaciones...',
-                              ),
-                            ),
-                          ],
-                        ),
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Row(
+      children: [
+        Text(
+          'Hoy:',
+          style: TextStyle(
+            fontSize: 16, 
+            fontWeight: FontWeight.bold,
+            color: Colors.teal[800],
+          ),
+        ),
+        const SizedBox(width: 8),
+        if (_isEditing)
+          IconButton(
+            icon: Icon(Icons.add_circle_outline, color: Colors.teal),
+            tooltip: 'Agregar fecha y hora',
+            onPressed: () {
+              final now = DateTime.now();
+              final formatter = DateFormat('dd/MM/yyyy, HH\'h\'mm');
+              final formatted = '${formatter.format(now)}.- ';
+              setState(() {
+                final currentText = _especificacionesController.text;
+                _especificacionesController.text = '$formatted$currentText';
+                _especificacionesController.selection = TextSelection.fromPosition(
+                  TextPosition(offset: _especificacionesController.text.length),
+                );
+              });
+            },
+          ),
+      ],
+    ),
+    const SizedBox(height: 8),
+    TextField(
+      controller: _especificacionesController,
+      maxLines: 3,
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.teal.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.teal, width: 2),
+        ),
+        filled: true,
+        fillColor: _isEditing ? Colors.white : Colors.grey.shade100,
+        enabled: _isEditing,
+        hintText: 'Ingrese las especificaciones...',
+      ),
+    ),
+    const SizedBox(height: 20),
+    Text(
+      'Próxima Cita:',
+      style: TextStyle(
+        fontSize: 16, 
+        fontWeight: FontWeight.bold,
+        color: Colors.teal[800],
+      ),
+    ),
+    const SizedBox(height: 8),
+    TextField(
+      controller: _observacionesController,
+      maxLines: 5,
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.teal.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.teal, width: 2),
+        ),
+        filled: true,
+        fillColor: _isEditing ? Colors.white : Colors.grey.shade100,
+        enabled: _isEditing,
+        hintText: 'Ingrese algunas observaciones...',
+      ),
+    ),
+  ],
+)
                       ),
                     ),
                     

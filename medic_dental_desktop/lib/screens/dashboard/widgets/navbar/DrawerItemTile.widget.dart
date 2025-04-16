@@ -7,6 +7,7 @@ import 'package:medic_dental_desktop/screens/cuentas/views/CuentasDashboard.dart
 import 'package:medic_dental_desktop/screens/odontograms/views/OdontogramScreen.dart';
 import 'package:medic_dental_desktop/screens/odontograms/views/PatientListScreen.dart';
 import 'package:medic_dental_desktop/screens/patients/views/PatientsScreen.dart';
+import 'package:medic_dental_desktop/screens/products/views/InventoryScreen.dart';
 
 class ExpandableSidebar extends StatefulWidget {
   final Function(Widget) onItemSelected;
@@ -157,7 +158,7 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
         page = PatientListScreen();
         break;
       case 3:
-       // page = QuestionScreen();
+        page = InventoryScreen();
         break;
       case 4:
         page = CuentasScreen();

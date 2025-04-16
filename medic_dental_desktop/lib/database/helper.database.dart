@@ -28,28 +28,11 @@ class DatabaseHelper {
       path,
       version: 2,  // Incrementamos la versión para manejar la actualización
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
     );
   }
 
   // Método para manejar actualizaciones de base de datos
-  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // Añadir la tabla odontogramas si estamos actualizando de la versión 1 a la 2
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS odontogramas (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          cliente_id TEXT NOT NULL,
-          fecha_registro TEXT NOT NULL,
-          doctor_id TEXT,
-          especificaciones TEXT,
-          observaciones TEXT,
-          dientes_estado TEXT NOT NULL,
-          FOREIGN KEY(cliente_id) REFERENCES patients(id)
-        )
-      ''');
-    }
-  }
+  
 
   Future _onCreate(Database db, int version) async {
     // Create Patients table
@@ -81,7 +64,19 @@ class DatabaseHelper {
         FOREIGN KEY (patient_id) REFERENCES patients (id) ON DELETE SET NULL
       )
     ''');
-    
+    //odontograms table
+    await db.execute('''
+        CREATE TABLE IF NOT EXISTS odontogramas (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          cliente_id TEXT NOT NULL,
+          fecha_registro TEXT NOT NULL,
+          doctor_id TEXT,
+          especificaciones TEXT,
+          observaciones TEXT,
+          dientes_estado TEXT NOT NULL,
+          FOREIGN KEY(cliente_id) REFERENCES patients(id)
+        )
+      ''');
     // Create Treatments table
   await db.execute('''
   CREATE TABLE IF NOT EXISTS IngresosEgresos (
@@ -105,38 +100,7 @@ class DatabaseHelper {
     duracion_minutos INT
 )
 '''  );
- await db.execute('''
-  CREATE TABLE IF NOT EXISTS Productos (
-    Codigo TEXT PRIMARY KEY,
-    Articulo TEXT NOT NULL,
-    Entradas INTEGER DEFAULT 0,
-    Salidas INTEGER DEFAULT 0,
-    Stock INTEGER DEFAULT 0
-  )
-''');
-
-
-await db.execute('''
-  CREATE TABLE IF NOT EXISTS Entradas (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Codigo TEXT NOT NULL,
-    Articulo TEXT NOT NULL,
-    Fecha TEXT NOT NULL,
-    Cantidad INTEGER NOT NULL,
-    FOREIGN KEY (Codigo) REFERENCES Productos (Codigo)
-  )
-''');
-
-await db.execute('''
-  CREATE TABLE IF NOT EXISTS Salidas (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Codigo TEXT NOT NULL,
-    Articulo TEXT NOT NULL,
-    Fecha TEXT NOT NULL,
-    Cantidad INTEGER NOT NULL,
-    FOREIGN KEY (Codigo) REFERENCES Productos (Codigo)
-  )
-''');
+ 
 await db.execute('''
   CREATE TABLE IF NOT EXISTS CuentasPorCobrar (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -159,6 +123,37 @@ await db.execute('''
   )
 ''');
 
+await db.execute('''
+  CREATE TABLE  productos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    descripcion TEXT,
+    stock INTEGER NOT NULL,
+    precio_unitario REAL NOT NULL
+  )
+''');
+
+await db.execute('''
+  CREATE TABLE entradas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    producto_id INTEGER NOT NULL,
+    cantidad INTEGER NOT NULL,
+    fecha TEXT NOT NULL,
+    observaciones TEXT,
+    FOREIGN KEY(producto_id) REFERENCES productos(id)
+  )
+''');
+
+await db.execute('''
+  CREATE TABLE  salidas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    producto_id INTEGER NOT NULL,
+    cantidad INTEGER NOT NULL,
+    fecha TEXT NOT NULL,
+    observaciones TEXT,
+    FOREIGN KEY(producto_id) REFERENCES productos(id)
+  )
+''');
 
     
     
@@ -424,6 +419,79 @@ Future<int> deleteRecaudoDiario(int id) async {
     whereArgs: [id],
   );
 }
+//CRUD INVENTARIO
+//productos
+Future<int> insertProducto(Map<String, dynamic> producto) async {
+  final db = await database;
+  return await db.insert('productos', producto);
+}
+
+Future<List<Map<String, dynamic>>> getAllProductos() async {
+  final db = await database;
+  return await db.query('productos');
+}
+
+Future<int> updateProducto(int id, Map<String, dynamic> producto) async {
+  final db = await database;
+  return await db.update('productos', producto, where: 'id = ?', whereArgs: [id]);
+}
+
+Future<int> deleteProducto(int id) async {
+  final db = await database;
+  return await db.delete('productos', where: 'id = ?', whereArgs: [id]);
+}
+//CRUD ENTRADAS
+Future<int> insertEntrada(Map<String, dynamic> entrada) async {
+  final db = await database;
+  return await db.insert('entradas', entrada);
+}
+
+Future<List<Map<String, dynamic>>> getAllEntradas() async {
+  final db = await database;
+  return await db.query('entradas');
+}
+
+Future<int> deleteEntrada(int id) async {
+  final db = await database;
+  return await db.delete('entradas', where: 'id = ?', whereArgs: [id]);
+}
+Future<int> getTotalEntradas() async {
+  final db = await database;
+  final result = await db.rawQuery('SELECT SUM(cantidad) as total FROM entradas');
+  return Sqflite.firstIntValue(result) ?? 0;
+}
+
+//CRUD SALIDAS
+Future<int> insertSalida(Map<String, dynamic> salida) async {
+  final db = await database;
+  return await db.insert('salidas', salida);
+}
+
+Future<List<Map<String, dynamic>>> getAllSalidas() async {
+  final db = await database;
+  return await db.query('salidas');
+}
+
+Future<int> deleteSalida(int id) async {
+  final db = await database;
+  return await db.delete('salidas', where: 'id = ?', whereArgs: [id]);
+}
+
+Future<int> getTotalSalidas() async {
+  final db = await database;
+  final result = await db.rawQuery('SELECT SUM(cantidad) as total FROM salidas');
+  return Sqflite.firstIntValue(result) ?? 0;
+}
+Future<List<Map<String, dynamic>>> getEntradasByProducto(int productoId) async {
+  final db = await database;
+  return await db.query('entradas', where: 'producto_id = ?', whereArgs: [productoId]);
+}
+
+Future<List<Map<String, dynamic>>> getSalidasByProducto(int productoId) async {
+  final db = await database;
+  return await db.query('salidas', where: 'producto_id = ?', whereArgs: [productoId]);
+}
+
 
 
 }
