@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:medic_dental_desktop/database/helper.database.dart';
 import 'package:medic_dental_desktop/screens/patients/views/PatientFormScreen.dart';
+import 'package:medic_dental_desktop/screens/patients/views/photoView.dart';
 
 class PatientsScreen extends StatefulWidget {
   @override
@@ -53,14 +54,24 @@ void _openPatientForm(BuildContext context, {Map<String, dynamic>? patient}) {
         itemBuilder: (_, index) {
           final p = _patients[index];
           return ListTile(
-            title: Text(p['name']),
-            subtitle: Text(p['phone'] ?? 'Sin teléfono'),
-            onTap: () => _navigateToForm(p),
-            trailing: IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () => _deletePatient(p['id']),
-            ),
-          );
+  title: Text(p['name']),
+  subtitle: Text(p['phone'] ?? 'Sin teléfono'),
+  onTap: () => _navigateToForm(p),
+  trailing: Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      IconButton(
+        icon: Icon(Icons.photo_library),
+        onPressed: () => _openPhotoGallery(p['id']), // Abre la galería del paciente
+      ),
+      IconButton(
+        icon: Icon(Icons.delete),
+        onPressed: () => _deletePatient(p['id']),
+      ),
+    ],
+  ),
+);
+
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -69,4 +80,13 @@ void _openPatientForm(BuildContext context, {Map<String, dynamic>? patient}) {
       ),
     );
   }
+  void _openPhotoGallery(int patientId) async {
+  await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => PatientGalleryScreen(patientId: patientId),
+    ),
+  );
+}
+
 }

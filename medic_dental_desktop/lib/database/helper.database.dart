@@ -168,6 +168,18 @@ await db.execute('''CREATE TABLE configuracion (
 );
 ''');
     
+    await db.execute('''
+  CREATE TABLE patient_photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    patient_id INTEGER NOT NULL,
+    image_path TEXT NOT NULL,
+    description TEXT,
+    date TEXT NOT NULL,
+    FOREIGN KEY (patient_id) REFERENCES patients (id) ON DELETE CASCADE
+  )
+''');
+
+
   }
 
   // PATIENT CRUD OPERATIONS
@@ -268,6 +280,16 @@ await db.execute('''CREATE TABLE configuracion (
       whereArgs: [id],
     );
   }
+  Future<void> updateAppointmentStatus(int id, String status) async {
+  final db = await database;
+  await db.update(
+    'appointments',
+    {'status': status},
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+}
+
 
  
   // ODONTOGRAMA CRUD OPERATIONS
@@ -544,5 +566,36 @@ Future<int> deleteConfiguracion(int id) async {
     whereArgs: [id],
   );
 }
+//Fotos
+Future<void> insertPhoto(Map<String, dynamic> photo) async {
+  final db = await database;
+  await db.insert('patient_photos', photo);
+}
+
+Future<List<Map<String, dynamic>>> getPhotosByPatient(int patientId) async {
+  final db = await database;
+  return await db.query(
+    'patient_photos',
+    where: 'patient_id = ?',
+    whereArgs: [patientId],
+    orderBy: 'date DESC',
+  );
+}
+
+Future<void> deletePhoto(int id) async {
+  final db = await database;
+  await db.delete('patient_photos', where: 'id = ?', whereArgs: [id]);
+}
+
+Future<void> updatePhotoDescription(int id, String description) async {
+  final db = await database;
+  await db.update(
+    'patient_photos',
+    {'description': description},
+    where: 'id = ?',
+    whereArgs: [id],
+  );
+}
+
 
 }

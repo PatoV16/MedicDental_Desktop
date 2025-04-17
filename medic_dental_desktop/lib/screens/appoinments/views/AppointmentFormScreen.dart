@@ -59,7 +59,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         'duration': duration,
         'treatment': treatment,
         'notes': notes,
-        'status': 'scheduled',
+        'status': 'pendiente',
       };
 
       final result = await DatabaseHelper().insertAppointment(appointment);

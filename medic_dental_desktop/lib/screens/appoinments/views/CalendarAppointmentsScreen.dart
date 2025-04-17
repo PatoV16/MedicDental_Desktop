@@ -60,6 +60,11 @@ class _CalendarAppointmentsScreenState
     });
   }
 
+  Future<void> _updateAppointmentStatus(int id, String newStatus) async {
+    await DatabaseHelper().updateAppointmentStatus(id, newStatus);
+    await _loadAppointments(); // refrescar datos
+  }
+
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     setState(() {
       _selectedDay = selectedDay;
@@ -76,7 +81,7 @@ class _CalendarAppointmentsScreenState
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(DateFormat('EEEE, dd MMMM yyyy').format(selectedDay)),
+          title: Text(DateFormat('EEEE, dd MMMM yyyy', 'es').format(selectedDay)),
           content: appointments.isEmpty
               ? Text("No hay citas para este día.")
               : SizedBox(
@@ -85,11 +90,49 @@ class _CalendarAppointmentsScreenState
                     itemCount: appointments.length,
                     itemBuilder: (context, index) {
                       var appointment = appointments[index];
+
+                      // Determinar color del estado
+                      Color statusColor;
+                      switch (appointment['status']) {
+                        case 'confirmada':
+                          statusColor = Colors.green;
+                          break;
+                        case 'pendiente':
+                          statusColor = Colors.orange;
+                          break;
+                        case 'cancelada':
+                          statusColor = Colors.red;
+                          break;
+                        default:
+                          statusColor = Colors.blue;
+                      }
+
                       return ListTile(
-                        title: Text(
-                            '${appointment['patient_name']}'),
-                        subtitle: Text(
-                            'Hora: ${appointment['time']} - Tratamiento: ${appointment['treatment']}'),
+                        title: Text('${appointment['patient_name']}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                                'Hora: ${appointment['time']} - Tratamiento: ${appointment['treatment']}'),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Estado: ${appointment['status']}',
+                              style: TextStyle(color: statusColor),
+                            ),
+                          ],
+                        ),
+                        trailing: PopupMenuButton<String>(
+                          icon: const Icon(Icons.edit, color: Colors.grey),
+                          onSelected: (String newStatus) async {
+                            await _updateAppointmentStatus(appointment['id'], newStatus);
+                            Navigator.pop(context); // cerrar el diálogo
+                          },
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem(value: 'confirmada', child: Text('Confirmar')),
+                            PopupMenuItem(value: 'pendiente', child: Text('Pendiente')),
+                            PopupMenuItem(value: 'cancelada', child: Text('Cancelar')),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -112,8 +155,7 @@ class _CalendarAppointmentsScreenState
           ? [ListTile(title: Text('Sin citas'))]
           : list.map((appointment) {
               return ListTile(
-                title: Text(
-                    '${appointment['patient_name']}'),
+                title: Text('${appointment['patient_name']}'),
                 subtitle: Text(
                     'Fecha: ${appointment['date']} - Hora: ${appointment['time']}'),
               );
@@ -131,7 +173,6 @@ class _CalendarAppointmentsScreenState
           _buildSection("📆 Próximas Citas", _upcomingAppointments),
           Divider(),
           TableCalendar(
-            // Eliminamos la configuración de locale
             focusedDay: _focusedDay,
             firstDay: DateTime(2020),
             lastDay: DateTime(2050),
@@ -165,7 +206,7 @@ class _CalendarAppointmentsScreenState
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddAppointmentScreen()),
-          ).then((_) => _loadAppointments()); // recarga al volver
+          ).then((_) => _loadAppointments());
         },
         child: Icon(Icons.add),
         tooltip: 'Agregar Cita',

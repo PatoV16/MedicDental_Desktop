@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medic_dental_desktop/database/helper.database.dart';
+import 'package:medic_dental_desktop/screens/facturas/views/preview.dart';
 
 class RecaudosDiariosScreen extends StatefulWidget {
   const RecaudosDiariosScreen({super.key});
@@ -216,6 +217,20 @@ class _RecaudosDiariosScreenState extends State<RecaudosDiariosScreen> {
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
                                 child: const Text('Cerrar'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  final configuracion = await DatabaseHelper().getConfiguracion();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => FacturaPreviewScreen(
+                                        recaudo: recaudo,
+                                        configuracion: configuracion,
+                                      ),
+                                    ),
+                                  );
+                                }, child: const Text('Factura'),
                               ),
                             ],
                           ),
