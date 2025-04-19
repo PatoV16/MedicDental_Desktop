@@ -90,7 +90,7 @@ class FacturaPreviewScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           const Text('FACTURA', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text('No. ${recaudo['numeroFactura'] ?? '001-001-000001'}'),
+                          Text('No. 001-001-00000${recaudo['Contador'] ?? '001-001-000001'}'),
                           Text('Fecha: $fechaCobro'),
                         ],
                       ),
@@ -196,19 +196,19 @@ class FacturaPreviewScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text('SUBTOTAL:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                      Text(formatoMoneda.format(valor / 1.12), textAlign: TextAlign.right),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text('IVA 12%:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                      Text(formatoMoneda.format(valor - (valor / 1.12)), textAlign: TextAlign.right),
-                                    ],
-                                  ),
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    const Text('SUBTOTAL:', style: TextStyle(fontWeight: FontWeight.bold)),
+    Text(formatoMoneda.format(valor / (1 + configuracion['iva'])), textAlign: TextAlign.right), // Subtotal antes del IVA
+  ],
+),
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text('IVA ${configuracion['iva'] * 100}%', style: const TextStyle(fontWeight: FontWeight.bold)),
+    Text(formatoMoneda.format(valor - (valor / (1 + configuracion['iva']))), textAlign: TextAlign.right), // IVA calculado
+  ],
+),
                                   const SizedBox(height: 8),
                                   Container(
                                     padding: const EdgeInsets.all(8),
@@ -364,7 +364,7 @@ Future<void> generarFacturaPDF(Map<String, dynamic> recaudo, Map<String, dynamic
                     children: [
                       pw.Text('FACTURA', style: estiloBold),
                       pw.SizedBox(height: 5),
-                      pw.Text('No. ${recaudo['numeroFactura'] ?? '001-001-000001'}', style: estiloNormal),
+                      pw.Text('No.001-001-00000 ${recaudo['Contador'] ?? '001-001-000001'}', style: estiloNormal),
                       pw.SizedBox(height: 5),
                       pw.Text('Fecha: $fechaCobro', style: estiloNormal),
                       if (config['autorizacion_sri'] != null)
@@ -491,7 +491,7 @@ Future<void> generarFacturaPDF(Map<String, dynamic> recaudo, Map<String, dynamic
                               pw.Row(
                                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                                 children: [
-                                  pw.Text('IVA 12%:', style: estiloBold),
+                                  pw.Text('IVA ${config['iva'] * 100}%', style: estiloBold),
                                   pw.Text(formatoMoneda.format(iva), style: estiloNormal),
                                 ],
                               ),

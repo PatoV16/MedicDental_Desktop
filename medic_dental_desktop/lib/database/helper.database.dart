@@ -119,9 +119,11 @@ await db.execute('''
     RecaudoDiario REAL NOT NULL,
     FechaCobro TEXT NOT NULL,
     NombreCliente TEXT NOT NULL,
-    Concepto TEXT NOT NULL
+    Concepto TEXT NOT NULL,
+    Contador INTEGER DEFAULT 0
   )
 ''');
+
 
 await db.execute('''
   CREATE TABLE  productos (
@@ -158,6 +160,7 @@ await db.execute('''
 await db.execute('''CREATE TABLE configuracion (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   ruc TEXT NOT NULL,
+  iva REAL NOT NULL,
   nombre_empresa TEXT NOT NULL,
   direccion TEXT,
   telefono TEXT,
@@ -428,6 +431,11 @@ Future<int> deleteCuentaPorCobrar(int id) async {
 // Insertar un nuevo recaudo diario
 Future<int> insertRecaudoDiario(Map<String, dynamic> data) async {
   final db = await database;
+  final result = await db.rawQuery('SELECT MAX(Contador) as maxContador FROM RecaudosDiarios');
+  final maxContador = result.first['maxContador'] as int? ?? 0;
+
+  // Asignar el nuevo contador
+  data['Contador'] = maxContador + 1;
   return await db.insert('RecaudosDiarios', data);
 }
 

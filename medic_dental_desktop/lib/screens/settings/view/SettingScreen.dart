@@ -26,7 +26,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   final TextEditingController _telefonoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _websiteController = TextEditingController();
-
+  final TextEditingController _ivaCntroller = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -59,7 +59,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
         _telefonoController.text = data['telefono'] ?? '';
         _emailController.text = data['email'] ?? '';
         _websiteController.text = data['website'] ?? '';
-
+        _ivaCntroller.text = data['iva'] ?? '';
         // Decodificar logo si existe
         if (data['logo'] != null && data['logo'].toString().isNotEmpty) {
           try {
@@ -114,59 +114,61 @@ final ImagePicker _picker = ImagePicker();
     });
   }
 
-  Future<void> _guardarConfiguracion() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        isLoading = true;
-      });
-      
-      final nuevaData = {
-        'nombre_empresa': _nombreController.text,
-        'ruc': _rucController.text,
-        'direccion': _direccionController.text,
-        'telefono': _telefonoController.text,
-        'email': _emailController.text,
-        'website': _websiteController.text,
-      };
+ Future<void> _guardarConfiguracion() async {
+  if (_formKey.currentState!.validate()) {
+    setState(() {
+      isLoading = true;
+    });
 
-      // Solo actualizamos el logo si ha cambiado
-      if (logoChanged && logoBytes != null) {
-  nuevaData['logo'] = base64Encode(logoBytes!); // Guardar como texto base64
-}
+    // Convertir el IVA ingresado (por ejemplo, 12) a su representación decimal (0.12)
+    final ivaDecimal = (double.tryParse(_ivaCntroller.text) ?? 0) / 100;
 
+    final nuevaData = {
+      'nombre_empresa': _nombreController.text,
+      'ruc': _rucController.text,
+      'direccion': _direccionController.text,
+      'telefono': _telefonoController.text,
+      'email': _emailController.text,
+      'website': _websiteController.text,
+      'iva': ivaDecimal.toString(), // Guardar el IVA como decimal
+    };
 
-      try {
-        if (configuracion == null || !configuracion!.containsKey('id')) {
-          // Insertar nueva configuración
-          await DatabaseHelper().insertConfiguracion(nuevaData);
-        } else {
-          // Actualizar configuración existente
-          await DatabaseHelper().updateConfiguracion(configuracion!['id'], nuevaData);
-        }
+    // Solo actualizamos el logo si ha cambiado
+    if (logoChanged && logoBytes != null) {
+      nuevaData['logo'] = base64Encode(logoBytes!); // Guardar como texto base64
+    }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Configuración guardada correctamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al guardar la configuración: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+    try {
+      if (configuracion == null || !configuracion!.containsKey('id')) {
+        // Insertar nueva configuración
+        await DatabaseHelper().insertConfiguracion(nuevaData);
+      } else {
+        // Actualizar configuración existente
+        await DatabaseHelper().updateConfiguracion(configuracion!['id'], nuevaData);
       }
 
-      setState(() {
-        editando = false;
-        logoChanged = false;
-      });
-      await _cargarConfiguracion();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Configuración guardada correctamente'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al guardar la configuración: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-  }
 
+    setState(() {
+      editando = false;
+      logoChanged = false;
+    });
+    await _cargarConfiguracion();
+  }
+}
   Future<void> _eliminarConfiguracion() async {
     if (configuracion != null && configuracion!.containsKey('id')) {
       showDialog(
@@ -208,6 +210,7 @@ final ImagePicker _picker = ImagePicker();
                     _telefonoController.clear();
                     _emailController.clear();
                     _websiteController.clear();
+                    _ivaCntroller.clear();
                   });
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -298,6 +301,7 @@ final ImagePicker _picker = ImagePicker();
           _cardDato('Teléfono', configuracion!['telefono']),
           _cardDato('Email', configuracion!['email']),
           _cardDato('Sitio Web', configuracion!['website']),
+          _cardDato('IVA', configuracion!['iva'].toString()),
           const SizedBox(height: 30),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -446,6 +450,13 @@ final ImagePicker _picker = ImagePicker();
             hint: 'Ingrese el RUC de la clínica',
           ),
           _inputTexto(
+            'IVA',
+            _ivaCntroller,
+            icon: Icons.price_check,
+            hint: 'Ingrese el IVA',
+            required: false,
+          ),
+          _inputTexto(
             'Dirección',
             _direccionController,
             icon: Icons.location_on_outlined,
@@ -505,6 +516,7 @@ final ImagePicker _picker = ImagePicker();
                       _telefonoController.text = configuracion!['telefono'] ?? '';
                       _emailController.text = configuracion!['email'] ?? '';
                       _websiteController.text = configuracion!['website'] ?? '';
+                      _ivaCntroller.text = (double.tryParse(configuracion!['iva'] ?? '0') ?? 0 * 100).toStringAsFixed(0);
                       
                       // Restaurar el logo
                       if (configuracion!['logo'] != null) {
