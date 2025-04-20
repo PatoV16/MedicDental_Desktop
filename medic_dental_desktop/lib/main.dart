@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
       ),
       // 👇 Aquí agregamos los delegados y locales soportad
       home: SplashScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

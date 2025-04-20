@@ -35,6 +35,11 @@ class CuentasScreen extends StatelessWidget {
           title: const Text("Control Financiero", selectionColor: Colors.blue),
           centerTitle: true,
           backgroundColor: const Color.fromARGB(255, 239, 241, 241),
+          shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(
+      bottom: Radius.circular(20), // Redondea la parte inferior
+    ),
+  ),
           bottom: TabBar(
             tabs: options.map((item) {
               return Tab(

@@ -46,9 +46,14 @@ class _InformacionClinicaScreenState extends State<InformacionClinicaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Información del Negocio"),
-        backgroundColor: Colors.teal,
-      ),
+  title: const Text("Información del Negocio"),
+  backgroundColor: Colors.teal,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(
+      bottom: Radius.circular(20), // Redondea la parte inferior
+    ),
+  ),
+),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

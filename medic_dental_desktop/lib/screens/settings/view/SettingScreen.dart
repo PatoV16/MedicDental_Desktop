@@ -238,10 +238,14 @@ final ImagePicker _picker = ImagePicker();
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configuración de la Clínica Dental'),
-        backgroundColor: Colors.teal.shade700,
-        elevation: 2,
-      ),
+  title: const Text("Configuración del sistema"),
+  backgroundColor: Colors.teal,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(
+      bottom: Radius.circular(20), // Redondea la parte inferior
+    ),
+  ),
+),
       body: isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.teal))
           : Container(

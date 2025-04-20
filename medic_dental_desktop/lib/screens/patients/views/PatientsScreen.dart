@@ -48,7 +48,15 @@ void _openPatientForm(BuildContext context, {Map<String, dynamic>? patient}) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Pacientes')),
+      appBar:AppBar(
+  title: const Text("Pacientes"),
+  backgroundColor: Colors.teal,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(
+      bottom: Radius.circular(20), // Redondea la parte inferior
+    ),
+  ),
+),
       body: ListView.builder(
         itemCount: _patients.length,
         itemBuilder: (_, index) {

@@ -465,7 +465,7 @@ Future<int> deleteRecaudoDiario(int id) async {
     whereArgs: [id],
   );
 }
-//CRUD INVENTARIO
+//CRUD  
 //productos
 Future<int> insertProducto(Map<String, dynamic> producto) async {
   final db = await database;

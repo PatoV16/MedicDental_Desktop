@@ -120,7 +120,13 @@ class _PatientListScreenState extends State<PatientListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pacientes - Odontogramas'),
+  title: const Text("Pacientes - Odontogramas"),
+  backgroundColor: Colors.teal,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(
+      bottom: Radius.circular(20), // Redondea la parte inferior
+    ),
+  ),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),

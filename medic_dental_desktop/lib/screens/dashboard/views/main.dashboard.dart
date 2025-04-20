@@ -227,19 +227,20 @@ Future<void> _loadUpcomingAppointments() async {
                                             formattedTime,
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 12,
+                                              fontSize: 10,
                                               color: const Color.fromARGB(255, 18, 120, 108),
                                             ),
                                           ),
                                           Text(
                                             formattedDate,
                                             style: TextStyle(
-                                              fontSize: 10,
+                                              fontSize: 8,
                                               color: Colors.grey[800],
                                             ),
                                           ),
                                         ],
                                       ),
+                                   
                                     ),
                                     title: Text(
                                       appointment['patient_name'] ?? 'Paciente sin nombre',

@@ -223,7 +223,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Inventario de Productos')),
+      appBar: AppBar(
+  title: const Text("Inventario de Productos"),
+  backgroundColor: Colors.teal,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(
+      bottom: Radius.circular(20), // Redondea la parte inferior
+    ),
+  ),
+),
       body: ListView.builder(
         itemCount: _products.length,
         itemBuilder: (_, index) {

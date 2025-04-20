@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:medic_dental_desktop/quiestion.dart';
 import 'package:medic_dental_desktop/screens/appoinments/views/CalendarAppointmentsScreen.dart';
+import 'package:medic_dental_desktop/screens/chatScreen/chat_screen.dart';
 import 'package:medic_dental_desktop/screens/cuentas/views/CuentasDashboard.dart';
 import 'package:medic_dental_desktop/screens/info/views/InformationScreen.dart';
 import 'package:medic_dental_desktop/screens/odontograms/views/OdontogramScreen.dart';
@@ -33,6 +34,7 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
     'Cuentas': Color(0xFF039BE5),
     'Configuración': Color(0xFF7CB342),
     'Información': Color(0xFF8E24AA),
+    'Consulta Inteligente': Color.fromARGB(255, 255, 255, 0),
   };
 
   @override
@@ -68,6 +70,7 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
                   _buildSidebarItem(Icons.account_balance_wallet, 'Cuentas', 4),
                   _buildSidebarItem(Icons.settings, 'Configuración', 5),
                   _buildSidebarItem(Icons.info, 'Información', 6),
+                  _buildSidebarItem(Icons.chat_bubble, 'Consulta Inteligente', 7 ),
                 ],
               ),
             ),
@@ -172,6 +175,9 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
         break;
       case 6:
         page = InformacionClinicaScreen();
+        break;
+      case 7:
+        page = ChatScreen();
         break;
     }
 

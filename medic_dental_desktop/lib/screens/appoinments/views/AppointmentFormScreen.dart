@@ -75,7 +75,15 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Agregar Cita")),
+      appBar: AppBar(
+  title: const Text("Citas Programadas"),
+  backgroundColor: Colors.teal,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(
+      bottom: Radius.circular(20), // Redondea la parte inferior
+    ),
+  ),
+  ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Form(
