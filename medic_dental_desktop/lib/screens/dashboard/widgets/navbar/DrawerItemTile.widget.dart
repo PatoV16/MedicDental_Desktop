@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:medic_dental_desktop/quiestion.dart';
 import 'package:medic_dental_desktop/screens/appoinments/views/CalendarAppointmentsScreen.dart';
-import 'package:medic_dental_desktop/screens/chatScreen/chat_screen.dart';
 import 'package:medic_dental_desktop/screens/cuentas/views/CuentasDashboard.dart';
 import 'package:medic_dental_desktop/screens/info/views/InformationScreen.dart';
 import 'package:medic_dental_desktop/screens/odontograms/views/OdontogramScreen.dart';
@@ -70,7 +69,7 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
                   _buildSidebarItem(Icons.account_balance_wallet, 'Cuentas', 4),
                   _buildSidebarItem(Icons.settings, 'Configuración', 5),
                   _buildSidebarItem(Icons.info, 'Información', 6),
-                  _buildSidebarItem(Icons.chat_bubble, 'Consulta Inteligente', 7 ),
+                  //_buildSidebarItem(Icons.chat_bubble, 'Consulta Inteligente', 7 ),
                 ],
               ),
             ),
@@ -176,9 +175,10 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
       case 6:
         page = InformacionClinicaScreen();
         break;
-      case 7:
+      /*case 7:
         page = ChatScreen();
         break;
+        */
     }
 
     widget.onItemSelected(page);
