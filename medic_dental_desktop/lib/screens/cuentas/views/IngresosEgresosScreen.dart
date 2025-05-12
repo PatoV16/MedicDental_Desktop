@@ -10,11 +10,23 @@ class IngresosEgresosScreen extends StatefulWidget {
 
 class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
   List<Map<String, dynamic>> movimientos = [];
+  TextEditingController searchController = TextEditingController();
+  DateTime? startDate;
+  DateTime? endDate;
 
   @override
   void initState() {
     super.initState();
+    searchController.addListener(() {
+      filtrarMovimientos();
+    });
     cargarMovimientos();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   Future<void> cargarMovimientos() async {
@@ -101,6 +113,36 @@ class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
     );
   }
 
+  void filtrarMovimientos() {
+    final query = searchController.text.toLowerCase();
+    setState(() {
+      movimientos = movimientos.where((m) {
+        final matchesSearch = m['Concepto'].toString().toLowerCase().contains(query);
+        final matchesStartDate = startDate == null || DateTime.parse(m['Fecha']).isAfter(startDate!.subtract(const Duration(days: 1)));
+        final matchesEndDate = endDate == null || DateTime.parse(m['Fecha']).isBefore(endDate!.add(const Duration(days: 1)));
+        return matchesSearch && matchesStartDate && matchesEndDate;
+      }).toList();
+    });
+  }
+
+  Future<void> seleccionarRangoFechas(BuildContext context) async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      initialDateRange: startDate != null && endDate != null
+          ? DateTimeRange(start: startDate!, end: endDate!)
+          : null,
+    );
+    if (picked != null) {
+      setState(() {
+        startDate = picked.start;
+        endDate = picked.end;
+      });
+      filtrarMovimientos();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final saldo = calcularSaldo();
@@ -131,6 +173,39 @@ class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      labelText: 'Buscar por concepto',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      suffixIcon: searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                searchController.clear();
+                              },
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: () => seleccionarRangoFechas(context),
+                  icon: const Icon(Icons.calendar_today),
+                  label: const Text('Filtrar por fecha'),
+                ),
+              ],
+            ),
+          ),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),

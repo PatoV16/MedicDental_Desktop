@@ -90,16 +90,7 @@ class DatabaseHelper {
 ''');
 
     
-    // Create Inventory table
-   await db.execute('''
-      CREATE TABLE tratamientos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    descripcion TEXT,
-    precio DECIMAL(10,2),
-    duracion_minutos INT
-)
-'''  );
+ 
  
 await db.execute('''
   CREATE TABLE IF NOT EXISTS CuentasPorCobrar (
@@ -321,7 +312,7 @@ await db.execute('''CREATE TABLE configuracion (
     Database db = await database;
     List<Map<String, dynamic>> result = await db.query(
       'odontogramas',
-      where: 'id = ?',
+      where: 'cliente_id = ?',
       whereArgs: [id],
       limit: 1,
     );

@@ -3,12 +3,12 @@ import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:medic_dental_desktop/database/helper.database.dart';
 
-class OdontogramaScreen extends StatefulWidget {
+class OdontogramaInfantilScreen extends StatefulWidget {
   final String pacienteId;
   final String pacienteNombre;
   final int? odontogramaId; // Opcional: si se proporciona, carga un odontograma específico
 
-  const OdontogramaScreen({
+  const OdontogramaInfantilScreen({
     Key? key,
     required this.pacienteId,
     required this.pacienteNombre,
@@ -19,7 +19,7 @@ class OdontogramaScreen extends StatefulWidget {
   _OdontogramaScreenState createState() => _OdontogramaScreenState();
 }
 
-class _OdontogramaScreenState extends State<OdontogramaScreen> {
+class _OdontogramaScreenState extends State<OdontogramaInfantilScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   Map<String, dynamic>? _odontograma;
   Map<String, String> _dientesEstado = {};
@@ -427,12 +427,12 @@ class _OdontogramaScreenState extends State<OdontogramaScreen> {
                     SizedBox(height: 30),
                     
                     // Odontograma superior (Cuadrantes 1 y 2)
-                    _construirSeccionOdontograma(true),
+                    _construirSeccionOdontogramaKid(true),
                     
                     SizedBox(height: 40),
                     
                     // Odontograma inferior (Cuadrantes 3 y 4)
-                    _construirSeccionOdontograma(false),
+                    _construirSeccionOdontogramaKid(false),
                     
                     SizedBox(height: 30),
                     
@@ -656,156 +656,126 @@ class _OdontogramaScreenState extends State<OdontogramaScreen> {
     );
   }
 
-  Widget _construirSeccionOdontograma(bool superior) {
-    // Cuadrantes: 1 y 2 (superior), 3 y 4 (inferior)
-    List<int> cuadrantes = superior ? [1, 2] : [4, 3]; // Nota: invertimos 3 y 4 para mejor visualización
-  
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              superior ? 'Arcada Superior' : 'Arcada Inferior',
-              style: TextStyle(
-                fontSize: 18, 
-                fontWeight: FontWeight.bold,
-                color: Colors.teal[800],
-              ),
+  Widget _construirSeccionOdontogramaKid(bool superior) {
+  List<int> cuadrantes = superior ? [6, 5] : [8, 7]; // Se invierte para visualización más intuitiva
+
+  return Card(
+    elevation: 4,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            superior ? 'Arcada Superior (Niños)' : 'Arcada Inferior (Niños)',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.deepOrange[800],
             ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: cuadrantes.map((cuadrante) {
-                List<Widget> dientes = List.generate(8, (index) {
-                  int numeroDiente;
-                  if (cuadrante == 1) {
-                    numeroDiente = cuadrante * 10 + (8 - index); // Invertido para Cuadrante 1
-                  } else if (cuadrante == 2) {
-                    numeroDiente = cuadrante * 10 + (index + 1);
-                  } else if (cuadrante == 3) {
-                    numeroDiente = cuadrante * 10 + (index + 1);
-                  } else { // cuadrante == 4
-                    numeroDiente = cuadrante * 10 + (8 - index); // Invertido para Cuadrante 4
-                  }
-                  
-                  String numeroStr = numeroDiente.toString();
-                  Color color = _obtenerColorDiente(numeroStr);
-                  IconData icon = _obtenerIconoDiente(numeroStr);
-                  
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                    child: GestureDetector(
-                      onTap: () => _cambiarEstadoDiente(numeroStr),
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 200),
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.7),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.grey.shade400,
-                            width: 1,
+          ),
+          SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: cuadrantes.map((cuadrante) {
+              List<Widget> dientes = List.generate(5, (index) {
+                int numeroDiente = cuadrante * 10 + (cuadrante % 2 == 0 ? index + 1 : 5 - index);
+
+                String numeroStr = numeroDiente.toString();
+                Color color = _obtenerColorDiente(numeroStr);
+                IconData icon = _obtenerIconoDiente(numeroStr);
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                  child: GestureDetector(
+                    onTap: () => _cambiarEstadoDiente(numeroStr),
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 200),
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.7),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey.shade400, width: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withOpacity(0.3),
+                            blurRadius: _isEditing ? 5 : 2,
+                            spreadRadius: 1,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: color.withOpacity(0.3),
-                              blurRadius: _isEditing ? 5 : 2,
-                              spreadRadius: 1,
+                        ],
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Icon(
+                            icon,
+                            color: color == Colors.white ? Colors.grey : Colors.white,
+                            size: 22,
+                          ),
+                          Text(
+                            numeroStr,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: color == Colors.white ? Colors.black : Colors.white,
                             ),
-                          ],
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Icon(
-                              icon,
-                              color: color == Colors.white ? Colors.grey : Colors.white,
-                              size: 24,
-                            ),
-                            Text(
-                              numeroStr,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: color == Colors.white ? Colors.black : Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                });
-                
-                // Dirección de los dientes según el cuadrante
-                if (cuadrante == 2 || cuadrante == 3) {
-                  return Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: dientes,
-                    ),
-                  );
-                } else {
-                  return Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: dientes,
-                    ),
-                  );
-                }
-              }).toList(),
-            ),
-            SizedBox(height: 10),
-            // Etiquetas de los cuadrantes
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 180,
-                  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.teal.shade100,
-                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
-                    'Cuadrante ${cuadrantes[1]}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
+                );
+              });
+
+              return Expanded(
+                child: Row(
+                  mainAxisAlignment: cuadrante % 2 == 0 ? MainAxisAlignment.start : MainAxisAlignment.end,
+                  children: dientes,
                 ),
-                Container(
-                  width: 180,
-                  padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.teal.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Cuadrante ${cuadrantes[0]}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 150,
+                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade100,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            ),
-          ],
-        ),
+                child: Text(
+                  'Cuadrante ${cuadrantes[1]}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
+              Container(
+                width: 150,
+                padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Cuadrante ${cuadrantes[0]}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _construirSelectorEstado() {
     return Card(

@@ -13,10 +13,13 @@ class _RecaudosDiariosScreenState extends State<RecaudosDiariosScreen> {
   List<Map<String, dynamic>> recaudosDiarios = [];
   List<Map<String, dynamic>> cuentas = [];
   String? selectedCuentaId;
+  String fecha = DateTime.now().toIso8601String().substring(0, 10);
+  final TextEditingController _fechaController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _fechaController.text = fecha;
     cargarRecaudos();
     cargarCuentas();
   }
@@ -100,6 +103,31 @@ class _RecaudosDiariosScreenState extends State<RecaudosDiariosScreen> {
                     validator: (val) => val == null || val.isEmpty ? 'Campo requerido' : null,
                     onSaved: (val) => concepto = val!,
                   ),
+                 TextFormField(
+  controller: _fechaController, // Usa un controlador
+  readOnly: true, // Para evitar que el usuario escriba manualmente
+  decoration: const InputDecoration(labelText: 'Fecha'),
+  validator: (val) {
+    if (val == null || val.isEmpty) {
+      return 'Campo requerido';
+    }
+    return null;
+  },
+  onTap: () async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      _fechaController.text = picked.toIso8601String().split('T').first;
+      fecha = _fechaController.text;
+    }
+  },
+  onSaved: (val) => fecha = val!,
+),
+
                 ],
               ),
             ),

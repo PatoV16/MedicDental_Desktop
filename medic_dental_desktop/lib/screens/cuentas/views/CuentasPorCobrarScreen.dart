@@ -50,6 +50,18 @@ class _CuentasPorCobrarScreenState extends State<CuentasPorCobrarScreen> {
     });
   }
 
+  Future<void> _selectFechaInicial(BuildContext context, Function(String) onDateSelected) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      onDateSelected(picked.toIso8601String().substring(0, 10));
+    }
+  }
+
   Future<void> agregarCuenta() async {
     final formKey = GlobalKey<FormState>();
     String paciente = '';
@@ -117,6 +129,24 @@ class _CuentasPorCobrarScreenState extends State<CuentasPorCobrarScreen> {
                       keyboardType: TextInputType.number,
                       validator: (val) => val == null || val.isEmpty ? 'Campo requerido' : null,
                       onSaved: (val) => saldoCuenta = double.tryParse(val!) ?? 0,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text('Fecha Inicial: $fechaInicial', style: const TextStyle(fontSize: 16)),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: () async {
+                            await _selectFechaInicial(context, (selectedDate) {
+                              setState(() {
+                                fechaInicial = selectedDate;
+                              });
+                            });
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),

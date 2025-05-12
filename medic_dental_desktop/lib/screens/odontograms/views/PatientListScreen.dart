@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:medic_dental_desktop/database/helper.database.dart';
 import 'package:medic_dental_desktop/screens/odontograms/views/OdontogramScreen.dart';
+import 'package:medic_dental_desktop/screens/odontograms/views/OdontogramaInfantil.dart';
 import 'package:medic_dental_desktop/screens/odontograms/views/OdontogramsHistory.dart';
 
 class PatientListScreen extends StatefulWidget {
@@ -93,7 +94,54 @@ class _PatientListScreenState extends State<PatientListScreen> {
     });
   }
 
-  void _navigateToOdontograma(Map<String, dynamic> paciente) {
+ /* void _navigateToOdontograma(Map<String, dynamic> paciente) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OdontogramaScreen(
+          pacienteId: paciente['id'].toString(),
+          pacienteNombre: paciente['name'] ?? 'Paciente',
+        ),
+      ),
+    );
+  }*/
+  void _navigateToOdontograma( Map<String, dynamic> paciente) {
+    
+  // Verificar si tiene fecha de nacimiento
+  if (paciente['birthdate'] != null) {
+    // Calcular la edad actual
+    final DateTime fechaNacimiento = DateTime.parse(paciente['birthdate']);
+    final DateTime hoy = DateTime.now();
+    int edad = hoy.year - fechaNacimiento.year;
+    
+    if (hoy.month < fechaNacimiento.month || 
+        (hoy.month == fechaNacimiento.month && hoy.day < fechaNacimiento.day)) {
+      edad--;
+    }
+    
+    // Si es menor de 12 años, mostrar odontograma infantil
+    if (edad < 12) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OdontogramaInfantilScreen(pacienteId: '${paciente['id']}', pacienteNombre: paciente['name'] ?? 'Paciente',),
+      
+          ),
+        );
+    } else {
+      // Si es mayor o igual a 12 años, mostrar odontograma normal
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OdontogramaScreen(
+            pacienteId: paciente['id'].toString(),
+            pacienteNombre: paciente['name'] ?? 'Paciente',
+          ),
+        ),
+      );
+    }
+  } else {
+    // Si no tiene fecha de nacimiento, mostrar odontograma normal por defecto
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -104,6 +152,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
       ),
     );
   }
+}
   void _navigateToHistoryOdontograma(Map<String, dynamic> paciente) {
     Navigator.push(
       context,

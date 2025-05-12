@@ -5,28 +5,71 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 
-class FacturaPreviewScreen extends StatelessWidget {
+class FacturaPreviewScreen extends StatefulWidget {
   final Map<String, dynamic> recaudo;
   final Map<String, dynamic> configuracion;
-  
+
   const FacturaPreviewScreen({
     required this.recaudo,
     required this.configuracion,
     super.key,
   });
+
+  @override
+  _FacturaPreviewScreenState createState() => _FacturaPreviewScreenState();
+}
+
+class _FacturaPreviewScreenState extends State<FacturaPreviewScreen> {
+  late TextEditingController _nombreClienteController;
+  late TextEditingController _cedulaClienteController;
+  late TextEditingController _direccionClienteController;
+  late TextEditingController _telefonoClienteController;
+  late TextEditingController _emailClienteController;
+  late List<Map<String, dynamic>> _servicios;
+
+  @override
+  void initState() {
+    super.initState();
+    _nombreClienteController = TextEditingController(text: widget.recaudo['NombreCliente'] ?? 'Cliente');
+    _cedulaClienteController = TextEditingController(text: widget.recaudo['cedulaCliente'] ?? '');
+    _direccionClienteController = TextEditingController(text: widget.recaudo['direccionCliente'] ?? '');
+    _telefonoClienteController = TextEditingController(text: widget.recaudo['telefonoCliente'] ?? '');
+    _emailClienteController = TextEditingController(text: widget.recaudo['emailCliente'] ?? '');
+    _servicios = [
+      {
+        'descripcion': widget.recaudo['Concepto'] ?? 'Pago de servicio',
+        'cantidad': 1,
+        'precio': widget.recaudo['RecaudoDiario'] ?? 0.0,
+      }
+    ];
+  }
+
+  @override
+  void dispose() {
+    _nombreClienteController.dispose();
+    _cedulaClienteController.dispose();
+    _direccionClienteController.dispose();
+    _telefonoClienteController.dispose();
+    _emailClienteController.dispose();
+    super.dispose();
+  }
+
+  void _agregarServicio() {
+    setState(() {
+      _servicios.add({'descripcion': '', 'cantidad': 1, 'precio': 0.0});
+    });
+  }
+
+  void _eliminarServicio(int index) {
+    setState(() {
+      _servicios.removeAt(index);
+    });
+  }
   
+
   @override
   Widget build(BuildContext context) {
-    // Formato de moneda
-    final formatoMoneda = NumberFormat.currency(
-      locale: 'es_EC',
-      symbol: '\$',
-      decimalDigits: 2,
-    );
-    
-    final valor = recaudo['valor'] ?? recaudo['RecaudoDiario'] ?? recaudo['Valor'] ?? 0.0;
-    final nombreCliente = recaudo['nombreCliente'] ?? recaudo['NombreCliente'] ?? recaudo['ClienteNombre'] ?? 'Cliente';
-    final fechaCobro = recaudo['fechaCobro'] ?? recaudo['FechaCobro'] ?? DateFormat('dd/MM/yyyy').format(DateTime.now());
+    final formatoMoneda = NumberFormat.currency(locale: 'es_EC', symbol: '\$');
     
     return Scaffold(
       appBar: AppBar(
@@ -36,225 +79,127 @@ class FacturaPreviewScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Logo (opcional)
-                    if (configuracion['logo_path'] != null)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16.0),
-                        child: Image.file(
-                          File(configuracion['logo_path']),
-                          height: 80,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 80,
-                              width: 80,
-                              color: Colors.grey[200],
-                              child: const Icon(Icons.business, size: 40),
-                            );
-                          },
-                        ),
-                      ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            configuracion['nombre_empresa'] ?? 'Empresa',
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.teal),
-                          ),
-                          const SizedBox(height: 4),
-                          Text('RUC: ${configuracion['ruc'] ?? 'N/A'}'),
-                          Text(configuracion['direccion'] ?? 'Dirección no especificada'),
-                          if (configuracion['telefono'] != null)
-                            Text('Tel: ${configuracion['telefono']}'),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.teal),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text('FACTURA', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text('No. 001-001-00000${recaudo['Contador'] ?? '001-001-000001'}'),
-                          Text('Fecha: $fechaCobro'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
+        child: SingleChildScrollView(
+          child: Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('DATOS DEL CLIENTE', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _nombreClienteController,
+                    decoration: const InputDecoration(labelText: 'Nombre del Cliente'),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('DATOS DEL CLIENTE', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Nombre: $nombreCliente'),
-                                if (recaudo['cedulaCliente'] != null)
-                                  Text('CI/RUC: ${recaudo['cedulaCliente']}'),
-                                if (recaudo['direccionCliente'] != null)
-                                  Text('Dirección: ${recaudo['direccionCliente']}'),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (recaudo['telefonoCliente'] != null)
-                                  Text('Teléfono: ${recaudo['telefonoCliente']}'),
-                                if (recaudo['emailCliente'] != null)
-                                  Text('Email: ${recaudo['emailCliente']}'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  TextFormField(
+                    controller: _cedulaClienteController,
+                    decoration: const InputDecoration(labelText: 'Cédula/RUC del Cliente'),
                   ),
-                ),
-                const SizedBox(height: 24),
-                const Text('DETALLE DE FACTURA', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
+                  TextFormField(
+                    controller: _direccionClienteController,
+                    decoration: const InputDecoration(labelText: 'Dirección del Cliente'),
                   ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.teal,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(8),
-                            topRight: Radius.circular(8),
-                          ),
-                        ),
-                        child: Row(
-                          children: const [
-                            Expanded(flex: 1, child: Text('CANT.', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 4, child: Text('DESCRIPCIÓN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                            Expanded(flex: 2, child: Text('P. UNIT.', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
-                            Expanded(flex: 2, child: Text('TOTAL', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
-                          ],
-                        ),
-                      ),
-                      // Aquí normalmente iría un ListView.builder para los items
-                      // Pero para este ejemplo, mostraremos un ítem fijo
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            Expanded(flex: 1, child: Text('1')),
-                            Expanded(flex: 4, child: Text(recaudo['descripcion'] ?? 'Pago de servicio')),
-                            Expanded(flex: 2, child: Text(formatoMoneda.format(valor), textAlign: TextAlign.right)),
-                            Expanded(flex: 2, child: Text(formatoMoneda.format(valor), textAlign: TextAlign.right)),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: Colors.grey),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Spacer(flex: 5),
-                            Expanded(
-                              flex: 4,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                  TextFormField(
+                    controller: _telefonoClienteController,
+                    decoration: const InputDecoration(labelText: 'Teléfono del Cliente'),
+                  ),
+                  TextFormField(
+                    controller: _emailClienteController,
+                    decoration: const InputDecoration(labelText: 'Email del Cliente'),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('DETALLE DE FACTURA', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _servicios.length,
+                    itemBuilder: (context, index) {
+                      final servicio = _servicios[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                initialValue: servicio['descripcion'],
+                                decoration: const InputDecoration(labelText: 'Descripción'),
+                                onChanged: (value) => servicio['descripcion'] = value,
+                              ),
+                              Row(
                                 children: [
-                                  Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    const Text('SUBTOTAL:', style: TextStyle(fontWeight: FontWeight.bold)),
-    Text(formatoMoneda.format(valor / (1 + configuracion['iva'])), textAlign: TextAlign.right), // Subtotal antes del IVA
-  ],
-),
-Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Text('IVA ${configuracion['iva'] * 100}%', style: const TextStyle(fontWeight: FontWeight.bold)),
-    Text(formatoMoneda.format(valor - (valor / (1 + configuracion['iva']))), textAlign: TextAlign.right), // IVA calculado
-  ],
-),
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    color: Colors.grey[200],
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text('TOTAL:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                        Text(formatoMoneda.format(valor), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                      ],
+                                  Expanded(
+                                    child: TextFormField(
+                                      initialValue: servicio['cantidad'].toString(),
+                                      decoration: const InputDecoration(labelText: 'Cantidad'),
+                                      keyboardType: TextInputType.number,
+                                      onChanged: (value) => servicio['cantidad'] = int.tryParse(value) ?? 1,
                                     ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextFormField(
+                                      initialValue: servicio['precio'].toStringAsFixed(2),
+                                      decoration: const InputDecoration(labelText: 'Precio Unitario'),
+                                      keyboardType: TextInputType.number,
+                                      onChanged: (value) => servicio['precio'] = double.tryParse(value) ?? 0.0,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => _eliminarServicio(index),
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      try {
-                        await generarFacturaPDF(recaudo, configuracion);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("PDF generado exitosamente")),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Error al generar PDF: $e")),
-                        );
-                      }
+                      );
                     },
-                    icon: const Icon(Icons.picture_as_pdf),
-                    label: const Text("Generar PDF"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  TextButton.icon(
+                    onPressed: _agregarServicio,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Agregar Servicio'),
+                  ),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final recaudoEditado = {
+                          'nombreCliente': _nombreClienteController.text,
+                          'cedulaCliente': _cedulaClienteController.text,
+                          'direccionCliente': _direccionClienteController.text,
+                          'telefonoCliente': _telefonoClienteController.text,
+                          'emailCliente': _emailClienteController.text,
+                          'servicios': _servicios,
+                        };
+                        try {
+                          await generarFacturaPDF(recaudoEditado, widget.configuracion);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("PDF generado exitosamente")),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Error al generar PDF: $e")),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.picture_as_pdf),
+                      label: const Text("Generar PDF"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
                     ),
                   ),
-                )
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -266,7 +211,25 @@ Row(
 Future<void> generarFacturaPDF(Map<String, dynamic> recaudo, Map<String, dynamic> config) async {
   // Crear documento PDF
   final pdf = pw.Document();
-  
+  // Funciones auxiliares para cálculos
+double _calcularSubtotal(List<dynamic> servicios) {
+  return servicios.fold(0.0, (sum, servicio) {
+    final cantidad = servicio['cantidad'] ?? 1;
+    final precio = double.tryParse(servicio['precio'].toString()) ?? 0.0;
+    return sum + (cantidad * precio);
+  });
+}
+
+double _calcularIVA(List<dynamic> servicios, double ivaRate) {
+  final subtotal = _calcularSubtotal(servicios);
+  return subtotal * ivaRate;
+}
+
+double _calcularTotal(List<dynamic> servicios, double ivaRate) {
+  final subtotal = _calcularSubtotal(servicios);
+  final iva = subtotal * ivaRate;
+  return subtotal + iva;
+}
   // Formateo de moneda para Ecuador
   final formatoMoneda = NumberFormat.currency(
     locale: 'es_EC',
@@ -275,10 +238,10 @@ Future<void> generarFacturaPDF(Map<String, dynamic> recaudo, Map<String, dynamic
   );
   
   // Unificar nombres de claves que pueden variar
-  final valor = recaudo['valor'] ?? recaudo['RecaudoDiario'] ?? recaudo['Valor'] ?? 0.0;
-  final nombreCliente = recaudo['nombreCliente'] ?? recaudo['NombreCliente'] ?? recaudo['ClienteNombre'] ?? 'Cliente';
-  final fechaCobro = recaudo['fechaCobro'] ?? recaudo['FechaCobro'] ?? DateFormat('dd/MM/yyyy').format(DateTime.now());
-  final subtotal = valor / 1.12;
+  final valor = recaudo['RecaudoDiario'] ?? recaudo['RecaudoDiario'] ?? recaudo['RecaudoDiario'] ?? 0.0;
+  final nombreCliente = recaudo['NombreCliente'] ?? 'Cliente';
+  final fechaCobro =  recaudo['FechaCobro'] ?? DateFormat('dd/MM/yyyy').format(DateTime.now());
+  final subtotal = valor / config['iva'];
   final iva = valor - subtotal;
   
   // Cargar logo si existe
@@ -427,96 +390,105 @@ Future<void> generarFacturaPDF(Map<String, dynamic> recaudo, Map<String, dynamic
             pw.SizedBox(height: 10),
             
             // Tabla de detalle
-            pw.Container(
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: colorBorde),
-                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
-              ),
+           pw.Container(
+  decoration: pw.BoxDecoration(
+    border: pw.Border.all(color: colorBorde),
+    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+  ),
+  child: pw.Column(
+    children: [
+      // Encabezado de tabla
+      pw.Container(
+        padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        decoration: pw.BoxDecoration(
+          color: colorPrimario,
+          borderRadius: const pw.BorderRadius.only(
+            topLeft: pw.Radius.circular(5),
+            topRight: pw.Radius.circular(5),
+          ),
+        ),
+        child: pw.Row(
+          children: [
+            pw.Expanded(flex: 1, child: pw.Text('CANT.', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10))),
+            pw.Expanded(flex: 4, child: pw.Text('DESCRIPCIÓN', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10))),
+            pw.Expanded(flex: 2, child: pw.Text('P. UNIT.', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10), textAlign: pw.TextAlign.right)),
+            pw.Expanded(flex: 2, child: pw.Text('TOTAL', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10), textAlign: pw.TextAlign.right)),
+          ],
+        ),
+      ),
+      
+      // Detalle de servicios
+      ...recaudo['servicios'].map<pw.Widget>((servicio) {
+        final cantidad = servicio['cantidad'] ?? 1;
+        final precio = double.tryParse(servicio['precio'].toString()) ?? 0.0;
+        final total = cantidad * precio;
+        
+        return pw.Container(
+          padding: const pw.EdgeInsets.all(10),
+          decoration: pw.BoxDecoration(
+            border: pw.Border(bottom: pw.BorderSide(color: colorBorde)),
+          ),
+          child: pw.Row(
+            children: [
+              pw.Expanded(flex: 1, child: pw.Text(cantidad.toString(), style: estiloNormal)),
+              pw.Expanded(flex: 4, child: pw.Text(servicio['descripcion'] ?? '', style: estiloNormal)),
+              pw.Expanded(flex: 2, child: pw.Text(formatoMoneda.format(precio), style: estiloNormal, textAlign: pw.TextAlign.right)),
+              pw.Expanded(flex: 2, child: pw.Text(formatoMoneda.format(total), style: estiloNormal, textAlign: pw.TextAlign.right)),
+            ],
+          ),
+        );
+      }).toList(),
+
+      // Calcular totales
+      pw.Container(
+        decoration: pw.BoxDecoration(
+          border: pw.Border(top: pw.BorderSide(color: colorBorde)),
+        ),
+        padding: const pw.EdgeInsets.all(10),
+        child: pw.Row(
+          children: [
+            pw.Expanded(flex: 5, child: pw.Container()),
+            pw.Expanded(
+              flex: 4,
               child: pw.Column(
                 children: [
-                  // Encabezado de tabla
-                  pw.Container(
-                    padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                    decoration: pw.BoxDecoration(
-                      color: colorPrimario,
-                      borderRadius: const pw.BorderRadius.only(
-                        topLeft: pw.Radius.circular(5),
-                        topRight: pw.Radius.circular(5),
-                      ),
-                    ),
-                    child: pw.Row(
-                      children: [
-                        pw.Expanded(flex: 1, child: pw.Text('CANT.', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10))),
-                        pw.Expanded(flex: 4, child: pw.Text('DESCRIPCIÓN', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10))),
-                        pw.Expanded(flex: 2, child: pw.Text('P. UNIT.', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10), textAlign: pw.TextAlign.right)),
-                        pw.Expanded(flex: 2, child: pw.Text('TOTAL', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10), textAlign: pw.TextAlign.right)),
-                      ],
-                    ),
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text('SUBTOTAL:', style: estiloBold),
+                      pw.Text(formatoMoneda.format(_calcularSubtotal(recaudo['servicios'])), style: estiloNormal),
+                    ],
                   ),
-                  
-                  // Detalle (normalmente un for o map sobre items)
-                  pw.Container(
-                    padding: const pw.EdgeInsets.all(10),
-                    child: pw.Row(
-                      children: [
-                        pw.Expanded(flex: 1, child: pw.Text('1', style: estiloNormal)),
-                        pw.Expanded(flex: 4, child: pw.Text(recaudo['descripcion'] ?? 'Pago de servicio', style: estiloNormal)),
-                        pw.Expanded(flex: 2, child: pw.Text(formatoMoneda.format(subtotal), style: estiloNormal, textAlign: pw.TextAlign.right)),
-                        pw.Expanded(flex: 2, child: pw.Text(formatoMoneda.format(subtotal), style: estiloNormal, textAlign: pw.TextAlign.right)),
-                      ],
-                    ),
+                  pw.SizedBox(height: 3),
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text('IVA ${(config['iva'] * 100).toStringAsFixed(0)}%:', style: estiloBold),
+                      pw.Text(formatoMoneda.format(_calcularIVA(recaudo['servicios'], config['iva'] ?? 0.12)), style: estiloNormal),
+                    ],
                   ),
-                  
-                  // Totales
+                  pw.SizedBox(height: 5),
                   pw.Container(
-                    decoration: pw.BoxDecoration(
-                      border: pw.Border(top: pw.BorderSide(color: colorBorde)),
-                    ),
-                    padding: const pw.EdgeInsets.all(10),
+                    padding: const pw.EdgeInsets.all(5),
+                    color: colorGris,
                     child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
-                        pw.Expanded(flex: 5, child: pw.Container()),
-                        pw.Expanded(
-                          flex: 4,
-                          child: pw.Column(
-                            children: [
-                              pw.Row(
-                                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                                children: [
-                                  pw.Text('SUBTOTAL:', style: estiloBold),
-                                  pw.Text(formatoMoneda.format(subtotal), style: estiloNormal),
-                                ],
-                              ),
-                              pw.SizedBox(height: 3),
-                              pw.Row(
-                                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                                children: [
-                                  pw.Text('IVA ${config['iva'] * 100}%', style: estiloBold),
-                                  pw.Text(formatoMoneda.format(iva), style: estiloNormal),
-                                ],
-                              ),
-                              pw.SizedBox(height: 5),
-                              pw.Container(
-                                padding: const pw.EdgeInsets.all(5),
-                                color: colorGris,
-                                child: pw.Row(
-                                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    pw.Text('TOTAL:', style: estiloBold),
-                                    pw.Text(formatoMoneda.format(valor), style: estiloBold),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        pw.Text('TOTAL:', style: estiloBold),
+                        pw.Text(formatoMoneda.format(_calcularTotal(recaudo['servicios'], config['iva'] ?? 0.12)), style: estiloBold),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            
+          ],
+        ),
+      ),
+    ],
+  ),
+),
+
             pw.SizedBox(height: 40),
             
             // Firmas
