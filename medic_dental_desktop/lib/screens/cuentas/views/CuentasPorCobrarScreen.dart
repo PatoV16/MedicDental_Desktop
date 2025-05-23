@@ -220,77 +220,79 @@ class _CuentasPorCobrarScreenState extends State<CuentasPorCobrarScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cuentas por Cobrar'),
-        backgroundColor: Colors.teal[800],
-        centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: agregarCuenta,
-        icon: const Icon(Icons.add),
-        label: const Text('Agregar Cuenta'),
-        backgroundColor: Colors.teal,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  labelText: 'Buscar por nombre de paciente',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  suffixIcon: searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            searchController.clear();
-                          },
-                        )
-                      : null,
+ Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Cuentas por Cobrar'),
+      backgroundColor: Colors.teal[800],
+      centerTitle: true,
+    ),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: agregarCuenta,
+      icon: const Icon(Icons.add),
+      label: const Text('Agregar Cuenta'),
+      backgroundColor: Colors.teal,
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                labelText: 'Buscar por nombre de paciente',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                suffixIcon: searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          searchController.clear();
+                          // actualizar lista si hace falta
+                        },
+                      )
+                    : null,
               ),
             ),
-            Expanded(
-              child: cuentasFiltradas.isEmpty
-                  ? const Center(child: Text('No hay cuentas registradas.'))
-                  : SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
+          ),
+          Expanded(
+            child: cuentasFiltradas.isEmpty
+                ? const Center(child: Text('No hay cuentas registradas.'))
+                : ListView(
+                    children: [
+                      DataTable(
+                        columnSpacing: 12.0,
                         headingRowColor: MaterialStateProperty.all(Colors.teal.shade100),
                         columns: const [
-                          DataColumn(label: Text('Paciente')),
-                          DataColumn(label: Text('Artículo')),
-                          DataColumn(label: Text('Valor Crédito')),
-                          DataColumn(label: Text('Saldo')),
-                          DataColumn(label: Text('Fecha Inicial')),
-                          DataColumn(label: Text('Estado')),
-                          DataColumn(label: Text('Acción')),
+                          DataColumn(label: Expanded(child: Text('Paciente'))),
+                          DataColumn(label: Expanded(child: Text('Tratamiento'))),
+                          DataColumn(label: Expanded(child: Text('Valor Crédito'))),
+                          DataColumn(label: Expanded(child: Text('Saldo'))),
+                          DataColumn(label: Expanded(child: Text('Fecha Inicial'))),
+                          DataColumn(label: Expanded(child: Text('Estado'))),
+                          DataColumn(label: Expanded(child: Text('Acción'))),
                         ],
                         rows: cuentasFiltradas.map((c) {
                           final double saldo = c['SaldoCuenta'] is double
                               ? c['SaldoCuenta']
                               : double.tryParse(c['SaldoCuenta'].toString()) ?? 0;
                           final String estado = c['Estado'] ?? 'Pendiente';
-                          
+
                           return DataRow(cells: [
-                            DataCell(Text(c['Paciente'].toString())),
-                            DataCell(Text(c['Articulo'].toString())),
+                            DataCell(Text(c['Paciente'].toString(), overflow: TextOverflow.ellipsis)),
+                            DataCell(Text(c['Articulo'].toString(), overflow: TextOverflow.ellipsis)),
                             DataCell(Text('\$${c['ValorCredito'].toString()}')),
                             DataCell(Text('\$${c['SaldoCuenta'].toString()}')),
                             DataCell(Text(c['FechaInicial'].toString().substring(0, 10))),
                             DataCell(Row(
                               children: [
                                 buildEstadoIndicator(saldo, estado),
-                                const SizedBox(width: 8),
-                                Text(estado),
+                                const SizedBox(width: 4),
+                                Expanded(child: Text(estado, overflow: TextOverflow.ellipsis)),
                               ],
                             )),
                             DataCell(
@@ -302,11 +304,14 @@ class _CuentasPorCobrarScreenState extends State<CuentasPorCobrarScreen> {
                           ]);
                         }).toList(),
                       ),
-                    ),
-            ),
-          ],
-        ),
+                    ],
+                  ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+
 }

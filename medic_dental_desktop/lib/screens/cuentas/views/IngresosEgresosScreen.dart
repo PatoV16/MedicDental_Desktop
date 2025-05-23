@@ -10,9 +10,11 @@ class IngresosEgresosScreen extends StatefulWidget {
 
 class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
   List<Map<String, dynamic>> movimientos = [];
+  List<Map<String, dynamic>> movimientosOriginal = [];
   TextEditingController searchController = TextEditingController();
   DateTime? startDate;
   DateTime? endDate;
+  DateTime? selectedDate;
 
   @override
   void initState() {
@@ -32,7 +34,8 @@ class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
   Future<void> cargarMovimientos() async {
     final data = await DatabaseHelper().getMovimientos();
     setState(() {
-      movimientos = data;
+      movimientosOriginal = data;
+      movimientos = List<Map<String, dynamic>>.from(data);
     });
   }
 
@@ -116,11 +119,21 @@ class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
   void filtrarMovimientos() {
     final query = searchController.text.toLowerCase();
     setState(() {
-      movimientos = movimientos.where((m) {
+      movimientos = movimientosOriginal.where((m) {
         final matchesSearch = m['Concepto'].toString().toLowerCase().contains(query);
-        final matchesStartDate = startDate == null || DateTime.parse(m['Fecha']).isAfter(startDate!.subtract(const Duration(days: 1)));
-        final matchesEndDate = endDate == null || DateTime.parse(m['Fecha']).isBefore(endDate!.add(const Duration(days: 1)));
-        return matchesSearch && matchesStartDate && matchesEndDate;
+
+        bool matchesDate = true;
+        if (selectedDate != null) {
+          final movDate = DateTime.parse(m['Fecha']);
+          matchesDate = movDate.year == selectedDate!.year &&
+                        movDate.month == selectedDate!.month &&
+                        movDate.day == selectedDate!.day;
+        } else {
+          final matchesStartDate = startDate == null || DateTime.parse(m['Fecha']).isAfter(startDate!.subtract(const Duration(days: 1)));
+          final matchesEndDate = endDate == null || DateTime.parse(m['Fecha']).isBefore(endDate!.add(const Duration(days: 1)));
+          matchesDate = matchesStartDate && matchesEndDate;
+        }
+        return matchesSearch && matchesDate;
       }).toList();
     });
   }
@@ -138,6 +151,24 @@ class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
       setState(() {
         startDate = picked.start;
         endDate = picked.end;
+        selectedDate = null;
+      });
+      filtrarMovimientos();
+    }
+  }
+
+  Future<void> seleccionarFechaUnica(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
+        startDate = null;
+        endDate = null;
       });
       filtrarMovimientos();
     }
@@ -180,6 +211,7 @@ class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
                 Expanded(
                   child: TextField(
                     controller: searchController,
+                    onChanged: (value) => filtrarMovimientos(),
                     decoration: InputDecoration(
                       labelText: 'Buscar por concepto',
                       prefixIcon: const Icon(Icons.search),
@@ -191,6 +223,7 @@ class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
                               icon: const Icon(Icons.clear),
                               onPressed: () {
                                 searchController.clear();
+                                filtrarMovimientos();
                               },
                             )
                           : null,
@@ -201,11 +234,41 @@ class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
                 ElevatedButton.icon(
                   onPressed: () => seleccionarRangoFechas(context),
                   icon: const Icon(Icons.calendar_today),
-                  label: const Text('Filtrar por fecha'),
+                  label: const Text('Filtrar por rango'),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: () => seleccionarFechaUnica(context),
+                  icon: const Icon(Icons.event),
+                  label: const Text('Solo un día'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: selectedDate != null ? Colors.teal : null,
+                  ),
                 ),
               ],
             ),
           ),
+          if (selectedDate != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  Text(
+                    'Filtrando por: ${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      setState(() {
+                        selectedDate = null;
+                      });
+                      filtrarMovimientos();
+                    },
+                  ),
+                ],
+              ),
+            ),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -215,41 +278,51 @@ class _IngresosEgresosScreenState extends State<IngresosEgresosScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: saldo >= 0 ? Colors.green : Colors.red),
             ),
-            child: Text(
-              'Saldo: \$${saldo.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: saldo >= 0 ? Colors.green[800] : Colors.red[800],
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.account_balance_wallet_outlined, size: 28),
+                const SizedBox(width: 10),
+                Text(
+                  'Saldo: \$${saldo.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: saldo >= 0 ? Colors.green[800] : Colors.red[800],
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: DataTable(
-                headingRowColor: MaterialStateProperty.all(Colors.blueGrey.shade100),
-                columns: const [
-                  DataColumn(label: Text('Fecha')),
-                  DataColumn(label: Text('Concepto')),
-                  DataColumn(label: Text('Ingreso')),
-                  DataColumn(label: Text('Egreso')),
-                  DataColumn(label: Text('Acción')),
-                ],
-                rows: movimientos.map((m) {
-                  return DataRow(cells: [
-                    DataCell(Text(m['Fecha'].toString().substring(0, 10))),
-                    DataCell(Text(m['Concepto'].toString())),
-                    DataCell(Text('\$${m['Ingresos']}')),
-                    DataCell(Text('\$${m['Egresos']}')),
-                    DataCell(
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => eliminarMovimiento(m['Id']),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: DataTable(
+                  headingRowColor: MaterialStateProperty.all(Colors.blueGrey.shade100),
+                  columns: const [
+                    DataColumn(label: Text('Fecha')),
+                    DataColumn(label: Text('Concepto')),
+                    DataColumn(label: Text('Ingreso')),
+                    DataColumn(label: Text('Egreso')),
+                    DataColumn(label: Text('Acción')),
+                  ],
+                  rows: movimientos.map((m) {
+                    return DataRow(cells: [
+                      DataCell(Text(m['Fecha'].toString().substring(0, 10))),
+                      DataCell(Text(m['Concepto'].toString())),
+                      DataCell(Text('\$${m['Ingresos']}')),
+                      DataCell(Text('\$${m['Egresos']}')),
+                      DataCell(
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => eliminarMovimiento(m['Id']),
+                        ),
                       ),
-                    ),
-                  ]);
-                }).toList(),
+                    ]);
+                  }).toList(),
+                ),
               ),
             ),
           ),

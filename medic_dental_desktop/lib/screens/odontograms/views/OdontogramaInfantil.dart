@@ -657,7 +657,7 @@ class _OdontogramaScreenState extends State<OdontogramaInfantilScreen> {
   }
 
   Widget _construirSeccionOdontogramaKid(bool superior) {
-  List<int> cuadrantes = superior ? [6, 5] : [8, 7]; // Se invierte para visualización más intuitiva
+  List<int> cuadrantes = superior ? [8, 7] :[6, 5] ; // Se invierte para visualización más intuitiva
 
   return Card(
     elevation: 4,

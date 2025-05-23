@@ -76,139 +76,151 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  title: const Text("Citas Programadas"),
-  backgroundColor: Colors.teal,
-  shape: const RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(
-      bottom: Radius.circular(20), // Redondea la parte inferior
-    ),
-  ),
-  ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                DropdownButtonFormField<int>(
-                  decoration: InputDecoration(labelText: "Seleccionar Paciente"),
-                  value: patientId,
-                  items: _patients.map((patient) {
-                    return DropdownMenuItem<int>(
-                      value: patient['id'],
-                      child: Text('${patient['name']}'),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      patientId = value;
-                      isNewPatient = value == null;
-
-                      if (value != null) {
-                        final selected = _patients.firstWhere((p) => p['id'] == value);
-                        patientName = selected['name'];
-                      } else {
-                        patientName = null;
-                      }
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null && (patientName == null)) {
-                      return 'Seleccione un paciente o ingrese uno nuevo';
-                    }
-                    return null;
-                  },
-                ),
-
-                if (patientId == null) ...[
-                  TextFormField(
-                    decoration: InputDecoration(labelText: "Nombre del Paciente"),
-                    initialValue: patientName,
-                    onChanged: (value) => patientName = value,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingrese el nombre';
-                      }
-                      return null;
-                    },
-                  ),
-                  
-                ],
-
-                Row(
-                  children: [
-                    Text("Fecha: ${DateFormat('yyyy-MM-dd').format(selectedDate)}"),
-                    IconButton(
-                      icon: Icon(Icons.calendar_today),
-                      onPressed: () => _selectDate(context),
-                    ),
-                  ],
-                ),
-
-                // Hora de la cita
-InkWell(
-  onTap: () async {
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (pickedTime != null) {
-      setState(() {
-        appointmentTime = pickedTime.format(context);
-      });
-    }
-  },
-  child: InputDecorator(
-    decoration: InputDecoration(
-      labelText: 'Hora de la cita',
-      border: OutlineInputBorder(),
-    ),
-    child: Text(
-      appointmentTime.isEmpty ? 'Seleccione una hora' : appointmentTime,
-      style: TextStyle(fontSize: 16),
-    ),
-  ),
-),
-if (appointmentTime.isEmpty)
-  Padding(
-    padding: const EdgeInsets.only(top: 8.0),
-    child: Text(
-      'Por favor seleccione la hora',
-      style: TextStyle(color: Colors.red[700], fontSize: 12),
-    ),
-  ),
-
-
-                TextFormField(
-                  decoration: InputDecoration(labelText: "Duración en minutos"),
-                  keyboardType: TextInputType.number,
-                  onSaved: (value) => duration = int.tryParse(value ?? '') ?? 0,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingrese la duración';
-                    }
-                    return null;
-                  },
-                ),
-
-                TextFormField(
-                  decoration: InputDecoration(labelText: "Tratamiento"),
-                  onSaved: (value) => treatment = value ?? '',
-                ),
-                TextFormField(
-                  decoration: InputDecoration(labelText: "Notas"),
-                  onSaved: (value) => notes = value ?? '',
-                ),
-
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _submitForm,
-                  child: Text("Guardar Cita"),
-                ),
-              ],
-            ),
+        title: const Text("Citas Programadas"),
+        backgroundColor: Colors.teal,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20),
           ),
+        ),
+      ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        DropdownButtonFormField<int>(
+                          decoration: InputDecoration(labelText: "Seleccionar Paciente"),
+                          value: patientId,
+                          items: _patients.map((patient) {
+                            return DropdownMenuItem<int>(
+                              value: patient['id'],
+                              child: Text('${patient['name']}'),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              patientId = value;
+                              isNewPatient = value == null;
+
+                              if (value != null) {
+                                final selected = _patients.firstWhere((p) => p['id'] == value);
+                                patientName = selected['name'];
+                              } else {
+                                patientName = null;
+                              }
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null && (patientName == null)) {
+                              return 'Seleccione un paciente o ingrese uno nuevo';
+                            }
+                            return null;
+                          },
+                        ),
+                        if (patientId == null) ...[
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            decoration: InputDecoration(labelText: "Nombre del Paciente"),
+                            initialValue: patientName,
+                            onChanged: (value) => patientName = value,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor ingrese el nombre';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text("Fecha: ${DateFormat('yyyy-MM-dd').format(selectedDate)}"),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.calendar_today),
+                              onPressed: () => _selectDate(context),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        InkWell(
+                          onTap: () async {
+                            final TimeOfDay? pickedTime = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+                            if (pickedTime != null) {
+                              setState(() {
+                                appointmentTime = pickedTime.format(context);
+                              });
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Hora de la cita',
+                              border: OutlineInputBorder(),
+                            ),
+                            child: Text(
+                              appointmentTime.isEmpty ? 'Seleccione una hora' : appointmentTime,
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                        if (appointmentTime.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Por favor seleccione la hora',
+                              style: TextStyle(color: Colors.red[700], fontSize: 12),
+                            ),
+                          ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          decoration: InputDecoration(labelText: "Duración en minutos"),
+                          keyboardType: TextInputType.number,
+                          onSaved: (value) => duration = int.tryParse(value ?? '') ?? 0,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingrese la duración';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          decoration: InputDecoration(labelText: "Tratamiento"),
+                          onSaved: (value) => treatment = value ?? '',
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          decoration: InputDecoration(labelText: "Notas"),
+                          onSaved: (value) => notes = value ?? '',
+                        ),
+                        const Spacer(),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _submitForm,
+                          child: Text("Guardar Cita"),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: Size(double.infinity, 48),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

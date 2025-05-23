@@ -239,7 +239,7 @@ double _calcularTotal(List<dynamic> servicios, double ivaRate) {
   
   // Unificar nombres de claves que pueden variar
   final valor = recaudo['RecaudoDiario'] ?? recaudo['RecaudoDiario'] ?? recaudo['RecaudoDiario'] ?? 0.0;
-  final nombreCliente = recaudo['NombreCliente'] ?? 'Cliente';
+  final nombreCliente = recaudo['nombreCliente'] ?? recaudo['NombreCliente'] ?? 'Cliente';
   final fechaCobro =  recaudo['FechaCobro'] ?? DateFormat('dd/MM/yyyy').format(DateTime.now());
   final subtotal = valor / config['iva'];
   final iva = valor - subtotal;

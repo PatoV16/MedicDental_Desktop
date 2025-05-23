@@ -197,78 +197,98 @@ class _RecaudosDiariosScreenState extends State<RecaudosDiariosScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recaudos Diarios'),
-        backgroundColor: Colors.teal[800],
-        centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: agregarRecaudo,
-        icon: const Icon(Icons.add),
-        label: const Text('Agregar Recaudo'),
-        backgroundColor: Colors.teal,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: recaudosDiarios.isEmpty
-            ? const Center(child: Text('No hay recaudos registrados.'))
-            : ListView.builder(
-                itemCount: recaudosDiarios.length,
-                itemBuilder: (context, index) {
-                  final recaudo = recaudosDiarios[index];
-                  return Card(
-                    elevation: 5,
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      title: Text(recaudo['NombreCliente']),
-                      subtitle: Text(recaudo['FechaCobro']),
-                      trailing: const Icon(Icons.arrow_forward),
-                      onTap: () {
-                        // Mostrar detalles del recaudo
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('Detalle del Recaudo'),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Cliente: ${recaudo['NombreCliente']}'),
-                                Text('Concepto: ${recaudo['Concepto']}'),
-                                Text('Recaudo: \$${recaudo['RecaudoDiario']}'),
-                                Text('Fecha: ${recaudo['FechaCobro']}'),
+ @override
+Widget build(BuildContext context) {
+  // Agrupar recaudos por paciente
+  Map<String, List<Map<String, dynamic>>> agrupadoPorPaciente = {};
+  for (var recaudo in recaudosDiarios) {
+    final paciente = recaudo['NombreCliente'];
+    if (!agrupadoPorPaciente.containsKey(paciente)) {
+      agrupadoPorPaciente[paciente] = [];
+    }
+    agrupadoPorPaciente[paciente]!.add(recaudo);
+  }
+
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Recaudos Diarios'),
+      backgroundColor: Colors.teal[800],
+      centerTitle: true,
+    ),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: agregarRecaudo,
+      icon: const Icon(Icons.add),
+      label: const Text('Agregar Recaudo'),
+      backgroundColor: Colors.teal,
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16),
+      child: agrupadoPorPaciente.isEmpty
+          ? const Center(child: Text('No hay recaudos registrados.'))
+          : ListView(
+              children: agrupadoPorPaciente.entries.map((entry) {
+                final paciente = entry.key;
+                final registros = entry.value;
+                return Card(
+                  elevation: 5,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: ExpansionTile(
+                    title: Text(
+                      paciente,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    children: registros.map((recaudo) {
+                      return ListTile(
+                        title: Text('Concepto: ${recaudo['Concepto']}'),
+                        subtitle: Text('Fecha: ${recaudo['FechaCobro']}'),
+                        trailing: Text('\$${recaudo['RecaudoDiario']}'),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('Detalle del Recaudo'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Cliente: ${recaudo['NombreCliente']}'),
+                                  Text('Concepto: ${recaudo['Concepto']}'),
+                                  Text('Recaudo: \$${recaudo['RecaudoDiario']}'),
+                                  Text('Fecha: ${recaudo['FechaCobro']}'),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cerrar'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    final configuracion = await DatabaseHelper().getConfiguracion();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => FacturaPreviewScreen(
+                                          recaudo: recaudo,
+                                          configuracion: configuracion,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Factura'),
+                                ),
                               ],
                             ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cerrar'),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  final configuracion = await DatabaseHelper().getConfiguracion();
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => FacturaPreviewScreen(
-                                        recaudo: recaudo,
-                                        configuracion: configuracion,
-                                      ),
-                                    ),
-                                  );
-                                }, child: const Text('Factura'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-      ),
-    );
-  }
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+                );
+              }).toList(),
+            ),
+    ),
+  );
+}
+
 }
